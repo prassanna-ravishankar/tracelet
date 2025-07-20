@@ -1,0 +1,238 @@
+<context>
+# Overview
+Tracelet is an intelligent, zero-configuration experiment tracking system designed specifically for PyTorch and PyTorch Lightning workflows. It automatically captures metrics, system information, and experiment metadata without requiring developers to modify their existing training code. The product solves the critical problem of experiment reproducibility and tracking in machine learning by providing seamless integration with popular experiment tracking backends like MLflow, Weights & Biases, and AIM.
+
+The target users are ML engineers, researchers, and data scientists who want to focus on model development rather than experiment tracking infrastructure. Tracelet eliminates the friction of manually instrumenting code for experiment tracking while ensuring comprehensive capture of all relevant experiment data.
+
+# Core Features
+## Automatic Metric Capture
+- What it does: Automatically intercepts and captures PyTorch TensorBoard logs, Lightning training metrics, and custom logging calls without code modification
+- Why it's important: Eliminates the need for manual metric logging, reducing boilerplate code and ensuring no metrics are missed
+- How it works: Uses runtime patching of framework logging methods to transparently capture all metric calls
+
+## Multi-Backend Support
+- What it does: Provides unified interface to multiple experiment tracking backends (MLflow, Weights & Biases, AIM) with automatic configuration
+- Why it's important: Allows users to switch between tracking platforms without changing code, and supports different organizational preferences
+- How it works: Abstract backend interface with specific implementations for each platform, configurable via environment variables
+
+## System Metrics Monitoring
+- What it does: Continuously monitors and logs CPU, GPU, memory usage, and other system metrics during training
+- Why it's important: Critical for understanding resource utilization, identifying bottlenecks, and ensuring reproducible environments
+- How it works: Background thread collection with configurable intervals, GPU monitoring via NVML when available
+
+## Git Integration
+- What it does: Automatically captures Git repository state including branch, commit hash, uncommitted changes, and remote information
+- Why it's important: Essential for experiment reproducibility and tracking which code version produced which results
+- How it works: GitPython integration that captures repository metadata at experiment start
+
+## Environment Tracking
+- What it does: Records Python version, platform information, and environment variables relevant to the experiment
+- Why it's important: Ensures experiments can be reproduced in the same environment conditions
+- How it works: Platform and environment detection with configurable variable filtering
+
+## Framework-Specific Integrations
+- What it does: Deep integration with PyTorch Lightning and vanilla PyTorch training loops
+- Why it's important: Captures framework-specific metrics and training state automatically
+- How it works: Framework detection and method patching for Lightning trainers and PyTorch TensorBoard writers
+
+# User Experience
+## User Personas
+- ML Engineer: Wants to track experiments across multiple projects with minimal setup
+- Research Scientist: Needs comprehensive experiment tracking for paper reproducibility
+- Data Scientist: Requires simple integration with existing PyTorch workflows
+- MLOps Engineer: Needs standardized tracking across team projects
+
+## Key User Flows
+1. Quick Start: User imports tracelet, calls `start_logging()` with minimal config, and begins training
+2. Backend Configuration: User sets environment variables or config object to specify tracking backend
+3. Experiment Management: User can start/stop experiments, view active experiments, and access experiment data
+4. Custom Integration: User can extend with custom collectors or backends for specific needs
+
+## UI/UX Considerations
+- Zero Configuration: Works out of the box with sensible defaults
+- Environment Variable Driven: All configuration via environment variables for containerized deployments
+- Pythonic Interface: Simple, intuitive API that follows Python conventions
+- Error Handling: Graceful degradation when optional dependencies are missing
+</context>
+<PRD>
+# Technical Architecture
+## System Components
+- Core Experiment Engine: Central orchestrator managing experiment lifecycle and data flow
+- Framework Integrations: PyTorch and Lightning specific adapters with method patching
+- Backend Adapters: Platform-specific implementations for MLflow, W&B, AIM
+- Collectors: Specialized modules for Git, system metrics, and environment data
+- Configuration System: Pydantic-based settings with environment variable support
+
+## Data Models
+- Experiment: Core entity containing metadata, configuration, and lifecycle state
+- ExperimentConfig: Configuration object defining what data to collect
+- Metric: Time-series data points with name, value, and iteration
+- Artifact: File-based data with local path and optional remote path
+- SystemInfo: Platform, hardware, and environment metadata
+
+## APIs and Integrations
+- Framework APIs: PyTorch TensorBoard, Lightning Trainer integration
+- Backend APIs: MLflow, Weights & Biases, AIM REST APIs
+- System APIs: psutil for system metrics, pynvml for GPU monitoring
+- Git APIs: GitPython for repository information
+
+## Infrastructure Requirements
+- Python 3.9+: Core runtime requirement
+- Optional Dependencies: TensorBoard, PyTorch Lightning, MLflow, W&B, AIM
+- GPU Support: NVML for NVIDIA GPU monitoring
+- Network Access: For remote backend communication
+
+# Development Roadmap
+## Phase 1: Core Foundation (MVP)
+- Complete the core experiment engine with basic metric logging
+- Implement MLflow backend integration with full CRUD operations
+- Add PyTorch TensorBoard patching for seamless metric capture
+- Basic system metrics collection (CPU, memory) with background threading
+- Git repository tracking with comprehensive metadata capture
+- Environment variable configuration system with validation
+- Simple start/stop logging interface with error handling
+- Basic artifact logging for model checkpoints and files
+
+## Phase 2: Framework Integration Enhancement
+- PyTorch Lightning integration with trainer patching and callback hooks
+- Enhanced TensorBoard integration supporting histograms, images, and custom scalars
+- Improved system metrics with GPU monitoring via NVML
+- Advanced artifact management with automatic file detection
+- Experiment tagging and metadata enrichment
+- Configuration validation with helpful error messages
+- Integration testing framework for multiple PyTorch versions
+
+## Phase 3: Multi-Backend Testing & Validation
+- ClearML backend implementation and integration testing with free SaaS platform
+- Weights & Biases backend implementation with free tier testing and validation flows
+- MLflow local deployment via Docker Compose setup for development and testing
+- End-to-end integration tests covering all three backends with sample PyTorch workflows
+- Backend comparison testing to ensure feature parity across platforms
+- Performance benchmarking across different backend implementations
+- Documentation and examples for each backend setup and configuration
+
+## Phase 4: Backend Expansion & Advanced Features
+- AIM backend implementation with local and remote support
+- Backend-specific features (dashboards, visualization, model registry)
+- Multi-backend support allowing simultaneous logging to multiple platforms
+- Backend migration tools for moving experiments between platforms
+- Performance optimization for high-throughput logging scenarios
+
+## Phase 5: Advanced Features
+- Custom collector framework allowing user-defined data collection
+- Real-time metrics streaming with WebSocket support
+- Experiment comparison and analysis tools with statistical significance testing
+- Integration with popular ML libraries (scikit-learn, XGBoost, Hugging Face)
+- Web dashboard for experiment visualization and management
+- REST API for programmatic experiment access and management
+
+## Phase 6: Enterprise Features
+- Multi-user and team support with workspace isolation
+- Access control and permissions with role-based security
+- Audit logging and compliance features for regulated industries
+- High availability and scalability improvements for large teams
+- Integration with CI/CD pipelines for automated experiment tracking
+- Advanced analytics and reporting with custom dashboards
+
+# Logical Dependency Chain
+## Foundation First (Phase 1 Priority Order)
+- Core experiment engine must be built first as all other components depend on it
+- Configuration system needed before any integrations can be implemented
+- Basic metric logging interface required before framework patching can begin
+- MLflow backend provides immediate value and serves as reference implementation
+- Git integration provides essential reproducibility from day one
+- System metrics collection can be developed in parallel with core engine
+
+## Getting to Usable Frontend Quickly
+- Start with simple Python API (`start_logging()`, `stop_logging()`) for immediate usability
+- Focus on PyTorch TensorBoard integration as it provides visible metric capture
+- Implement basic MLflow backend to show results in familiar interface
+- Add artifact logging early so users can save and retrieve model checkpoints
+- Ensure error handling and graceful degradation for missing dependencies
+
+## Framework Integration (Phase 2 Dependencies)
+- PyTorch integration must be stable before Lightning integration
+- Lightning integration depends on understanding PyTorch patterns
+- System metrics GPU monitoring requires stable base metrics collection
+- Advanced TensorBoard features build on basic scalar logging
+
+## Multi-Backend Testing & Validation (Phase 3 Dependencies)
+- MLflow backend implementation must be stable and working before expanding to other backends
+- ClearML and W&B implementations can be developed in parallel once core patterns are established
+- Docker Compose setup for MLflow enables consistent local development environment
+- End-to-end testing requires stable core experiment engine and framework integrations
+- Backend comparison testing validates that abstraction layer works across different platforms
+
+## Backend Expansion (Phase 4 Dependencies)
+- Phase 3 testing validates that backend abstraction layer is robust and extensible
+- AIM backend implementation follows patterns proven with MLflow, ClearML, and W&B
+- Multi-backend support requires all individual backends to be complete and tested
+- Backend migration tools need deep understanding of each platform's data model from Phase 3 testing
+
+## Advanced Features (Phase 5 Dependencies)
+- Custom collector framework requires stable core interfaces and proven patterns
+- Real-time features depend on efficient data flow established in earlier phases
+- Web dashboard requires complete data model and API from previous phases
+- ML library integrations follow same patterns as PyTorch/Lightning
+
+# Risks and Mitigations
+## Technical Challenges
+- Risk: Runtime patching of framework methods may break with framework updates
+- Mitigation: Comprehensive testing matrix with multiple framework versions, graceful fallback when patching fails, version-specific patches
+
+- Risk: Performance overhead from continuous system metrics collection and method patching
+- Mitigation: Configurable collection intervals, efficient data structures, background threading, performance benchmarking
+
+- Risk: Backend API changes breaking integrations
+- Mitigation: Version-specific backend adapters, comprehensive error handling, dependency version pinning, abstract interface design
+
+## Figuring out the MVP that we can build upon
+- Risk: Over-engineering the abstraction layers in early phases
+- Mitigation: Start with concrete MLflow implementation, extract abstractions only when adding second backend
+
+- Risk: Feature creep leading to complex, hard-to-maintain MVP
+- Mitigation: Strict MVP definition focusing on core PyTorch + MLflow integration, defer advanced features
+
+- Risk: Framework integration complexity making system fragile
+- Mitigation: Extensive testing, optional integration features, graceful degradation when patching fails
+
+## Resource Constraints
+- Risk: Limited testing resources for multiple framework and Python version combinations
+- Mitigation: Focus on most popular combinations first (PyTorch 1.x, Python 3.9+), community-driven testing
+
+- Risk: Backend integration complexity consuming too much development time
+- Mitigation: Start with MLflow (simpler API), leverage existing client libraries, phase backend additions
+
+- Risk: Documentation and examples keeping pace with rapid feature development
+- Mitigation: Documentation-driven development, automated example testing, community contributions
+
+# Appendix
+## Research Findings
+- Current experiment tracking solutions (MLflow, W&B) require significant code modification and manual instrumentation
+- PyTorch Lightning users frequently struggle with metric logging consistency across different training setups
+- System metrics (GPU, CPU, memory) are frequently overlooked but critical for understanding training performance and reproducibility
+- Git integration is a common pain point - developers often forget to commit before experiments or lose track of which code produced which results
+- Environment reproducibility is challenging - different Python versions, package versions, and system configurations lead to non-reproducible results
+- Switching between experiment tracking backends requires significant code changes, locking users into specific platforms
+
+## Technical Specifications
+- Language: Python 3.9+ (matches PyTorch minimum requirements)
+- Core Dependencies: gitpython>=3.1.0, psutil>=5.8.0, pydantic>=2.0.0, pydantic-settings>=2.0.0
+- Backend Dependencies: mlflow>=2.0.0, wandb>=0.12.0, clearml>=1.9.0, aim>=3.0.0, pynvml>=11.0.0
+- Optional Dependencies: tensorboard>=2.4.0, pytorch-lightning>=1.0.0
+- Architecture: Modular design with clear interfaces between components, dependency injection for testing
+- Configuration: Environment variable driven with Pydantic validation, supports .env files and runtime configuration
+- Testing Infrastructure:
+  - Unit tests with pytest for individual components
+  - Integration tests with Docker Compose for MLflow local deployment
+  - End-to-end tests with ClearML free SaaS platform (clearml.allegro.ai)
+  - Weights & Biases integration tests with free tier (wandb.ai)
+  - Performance benchmarks across all backend implementations
+  - Automated testing matrix across Python versions and dependency combinations
+- Development Environment:
+  - Docker Compose setup for MLflow with PostgreSQL backend and artifact store
+  - Environment configuration templates for each backend
+  - Sample PyTorch training scripts for testing each backend integration
+- Documentation: Sphinx-based docs, interactive examples, API reference with type hints, backend setup guides
+- Packaging: Standard Python package with setuptools, optional dependencies for different backends
+- CI/CD: GitHub Actions with matrix testing, Docker-based MLflow testing, external service integration tests
