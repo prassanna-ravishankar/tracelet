@@ -42,8 +42,7 @@ def train_model():
         "dropout": 0.2,
     }
 
-    for name, value in hyperparams.items():
-        exp.log_param(name, value)
+    exp.log_params(hyperparams)
 
     print("Logged hyperparameters")
 

@@ -274,8 +274,7 @@ class SimplePyTorchWorkflow(TrainingWorkflow):
             "optimizer": "adam",
         }
 
-        for name, value in hyperparams.items():
-            exp.log_param(name, value)
+        exp.log_params(hyperparams)
 
         # Set up TensorBoard logging
         if "temp_dir" in backend_config:
@@ -476,8 +475,7 @@ class LightningWorkflow(TrainingWorkflow):
             "val_samples": len(val_dataset),
         }
 
-        for name, value in hyperparams.items():
-            exp.log_param(name, value)
+        exp.log_params(hyperparams)
 
         # Create model and trainer
         model = LightningModel()

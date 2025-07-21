@@ -130,8 +130,7 @@ class ComputerVisionWorkflow(TrainingWorkflow):
             "input_size": "32x32x3",
         }
 
-        for name, value in hyperparams.items():
-            exp.log_param(name, value)
+        exp.log_params(hyperparams)
 
         # Set up TensorBoard
         if "temp_dir" in backend_config:
@@ -371,8 +370,7 @@ class TimeSeriesWorkflow(TrainingWorkflow):
             "scheduler": "ReduceLROnPlateau",
         }
 
-        for name, value in hyperparams.items():
-            exp.log_param(name, value)
+        exp.log_params(hyperparams)
 
         # Set up TensorBoard
         if "temp_dir" in backend_config:
