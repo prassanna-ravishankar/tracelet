@@ -16,6 +16,9 @@ import pytest
 
 from .framework import TrainingWorkflow, e2e_framework
 
+# Mark all tests in this module as slow
+pytestmark = pytest.mark.slow
+
 try:
     import torch
     import torch.nn as nn

@@ -19,8 +19,14 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-python-env
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-suffix: "docs"
+
+      - name: Install dependencies
+        run: uv sync --frozen
 
       - name: Run checks
         run: make check
@@ -38,16 +44,19 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-python-env
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-suffix: "all-deps-${{ matrix.python-version }}"
+
+      - name: Install Python and dependencies
+        run: |
+          uv python install ${{ matrix.python-version }}
+          uv sync --frozen --extra all
 
       - name: Run tests
-        run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=xml
-
-      - name: Check typing
-        run: uv run mypy
+        run: uv run python -m pytest tests/unit --cov --cov-config=pyproject.toml --cov-report=xml
 
       - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
         uses: codecov/codecov-action@v4

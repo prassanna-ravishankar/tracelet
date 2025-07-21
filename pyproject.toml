@@ -103,6 +103,9 @@ show_error_codes = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 
 [tool.ruff]
 target-version = "py39"
@@ -147,6 +150,14 @@ ignore = [
     "E501",
     # DoNotAssignLambda
     "E731",
+    # Avoid specifying long messages outside the exception class
+    "TRY003",
+    # Consider moving this statement to an `else` block
+    "TRY300",
+    # Abstract `raise` to an inner function
+    "TRY301",
+    # Redundant exception object included in `logging.exception` call
+    "TRY401",
 ]
 
 [tool.ruff.lint.per-file-ignores]

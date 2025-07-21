@@ -150,6 +150,7 @@ class TestBasicWorkflows:
 class TestCrossBackendCompatibility:
     """Test that the same workflows produce consistent results across backends."""
 
+    @pytest.mark.slow
     def test_pytorch_consistency_across_backends(self):
         """Test that PyTorch workflow produces consistent results across backends."""
         available_backends = e2e_framework.get_available_backends()
@@ -194,6 +195,7 @@ class TestCrossBackendCompatibility:
                 first_result["accuracies"]
             ), f"Accuracies count mismatch: {backend_name} vs first backend"
 
+    @pytest.mark.slow
     def test_lightning_consistency_across_backends(self):
         """Test that Lightning workflow produces consistent results across backends."""
         available_backends = e2e_framework.get_available_backends()
@@ -238,6 +240,7 @@ class TestCrossBackendCompatibility:
 class TestComprehensiveE2E:
     """Comprehensive end-to-end test suite."""
 
+    @pytest.mark.slow
     def test_comprehensive_all_backends_workflows(self):
         """Run comprehensive tests across all available backends and workflows."""
         results = e2e_framework.run_comprehensive_test()
@@ -275,6 +278,7 @@ class TestComprehensiveE2E:
 class TestPerformanceBenchmark:
     """Basic performance benchmarking tests."""
 
+    @pytest.mark.slow
     def test_mlflow_performance(self):
         """Benchmark MLflow backend performance."""
         if "mlflow" not in e2e_framework.get_available_backends():
@@ -293,6 +297,7 @@ class TestPerformanceBenchmark:
 
             print(f"MLflow performance: {results['execution_time']:.2f}s for 10 epochs")
 
+    @pytest.mark.slow
     def test_wandb_performance(self):
         """Benchmark W&B backend performance."""
         if "wandb" not in e2e_framework.get_available_backends():
@@ -311,6 +316,7 @@ class TestPerformanceBenchmark:
 
             print(f"W&B performance: {results['execution_time']:.2f}s for 10 epochs")
 
+    @pytest.mark.slow
     def test_clearml_performance(self):
         """Benchmark ClearML backend performance."""
         if "clearml" not in e2e_framework.get_available_backends():
