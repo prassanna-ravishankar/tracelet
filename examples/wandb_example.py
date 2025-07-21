@@ -25,6 +25,12 @@ import tracelet
 
 def train_model():
     """Simulate a simple training loop."""
+    import os
+
+    # Set W&B to offline mode if no API key is configured
+    if not os.environ.get("WANDB_API_KEY"):
+        os.environ["WANDB_MODE"] = "offline"
+        print("W&B API key not found, running in offline mode...")
 
     # Start logging with W&B backend
     exp = tracelet.start_logging(exp_name="wandb_example", project="Tracelet Examples", backend="wandb")
