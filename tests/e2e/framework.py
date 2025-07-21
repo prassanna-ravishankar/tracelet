@@ -205,6 +205,43 @@ class WandbEnvironment(BackendEnvironment):
         self._cleanup_temp_dir()
 
 
+class AIMBackendEnvironment(BackendEnvironment):
+    """AIM backend test environment."""
+
+    def __init__(self, config: Optional[dict[str, Any]] = None):
+        super().__init__("aim", config or {})
+
+    def is_available(self) -> bool:
+        """Check if AIM is available."""
+        try:
+            import aim  # noqa: F401
+        except ImportError:
+            return False
+        else:
+            return True
+
+    def get_backend_name(self) -> str:
+        """Get the backend name."""
+        return "aim"
+
+    def setup(self) -> dict[str, Any]:
+        """Set up AIM backend environment."""
+        if not self.is_available():
+            pytest.skip("AIM not available")
+
+        # Create temporary directory for AIM repository
+        temp_dir = self._create_temp_dir()
+        aim_repo_path = temp_dir / "aim_repo"
+        aim_repo_path.mkdir(parents=True, exist_ok=True)
+
+        return {"backend": "aim", "project": "e2e_test", "repo_path": str(aim_repo_path), "temp_dir": str(temp_dir)}
+
+    def teardown(self):
+        """Clean up AIM environment."""
+        # AIM creates its own .aim directory, clean it up
+        self._cleanup_temp_dir()
+
+
 class TrainingWorkflow(ABC):
     """Abstract base class for training workflows."""
 
@@ -536,7 +573,12 @@ class E2ETestFramework:
     """Main E2E test framework coordinator."""
 
     def __init__(self):
-        self.environments = {"mlflow": MLflowEnvironment, "clearml": ClearMLEnvironment, "wandb": WandbEnvironment}
+        self.environments = {
+            "mlflow": MLflowEnvironment,
+            "clearml": ClearMLEnvironment,
+            "wandb": WandbEnvironment,
+            "aim": AIMBackendEnvironment,
+        }
 
         self.workflows = {"simple_pytorch": SimplePyTorchWorkflow, "lightning": LightningWorkflow}
 

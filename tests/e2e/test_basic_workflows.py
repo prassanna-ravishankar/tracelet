@@ -114,6 +114,38 @@ class TestBasicWorkflows:
             assert results["epochs_completed"] == 10
             assert results["training_completed"] is True
 
+    def test_pytorch_with_aim(self):
+        """Test PyTorch workflow with AIM backend."""
+        if "aim" not in e2e_framework.get_available_backends():
+            pytest.skip("AIM backend not available")
+
+        if "simple_pytorch" not in e2e_framework.get_available_workflows():
+            pytest.skip("PyTorch workflow not available")
+
+        with e2e_framework.backend_environment("aim") as backend_config:
+            results = e2e_framework.run_workflow("simple_pytorch", backend_config)
+
+            assert results["success"], f"Workflow failed: {results.get('error', 'Unknown error')}"
+            assert results["epochs_completed"] == 10
+            assert len(results["losses"]) == 10
+            assert len(results["accuracies"]) == 10
+            assert results["execution_time"] > 0
+
+    def test_lightning_with_aim(self):
+        """Test Lightning workflow with AIM backend."""
+        if "aim" not in e2e_framework.get_available_backends():
+            pytest.skip("AIM backend not available")
+
+        if "lightning" not in e2e_framework.get_available_workflows():
+            pytest.skip("Lightning workflow not available")
+
+        with e2e_framework.backend_environment("aim") as backend_config:
+            results = e2e_framework.run_workflow("lightning", backend_config)
+
+            assert results["success"], f"Workflow failed: {results.get('error', 'Unknown error')}"
+            assert results["epochs_completed"] == 10
+            assert results["training_completed"] is True
+
 
 class TestCrossBackendCompatibility:
     """Test that the same workflows produce consistent results across backends."""

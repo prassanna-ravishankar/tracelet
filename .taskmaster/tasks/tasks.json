@@ -375,48 +375,48 @@
                 "subtasks": [
                     {
                         "id": 1,
-                        "title": "Set up AIM SDK and authentication",
-                        "description": "",
-                        "details": "",
-                        "status": "done",
+                        "title": "Create AIM backend adapter structure",
+                        "description": "Set up the basic AIM backend adapter class following the established backend pattern",
                         "dependencies": [],
-                        "parentTaskId": 13
+                        "details": "Create AIMBackend class extending BaseBackend, implement core structure with proper initialization for both local and remote AIM deployments. Include configuration handling for AIM server URL, authentication, and connection parameters.",
+                        "status": "done",
+                        "testStrategy": "Unit tests for adapter initialization, configuration validation tests"
                     },
                     {
                         "id": 2,
-                        "title": "Create AIM backend adapter class",
-                        "description": "",
-                        "details": "",
+                        "title": "Implement experiment management operations",
+                        "description": "Add experiment creation, retrieval, and management functionality for AIM",
+                        "dependencies": ["13.1"],
+                        "details": "Implement create_experiment, get_experiment, list_experiments, and delete_experiment methods. Map AIM's Run concept to the abstract experiment model. Handle AIM-specific features like experiment contexts and tags.",
                         "status": "done",
-                        "dependencies": [],
-                        "parentTaskId": 13
+                        "testStrategy": "Integration tests with local AIM instance for experiment CRUD operations"
                     },
                     {
                         "id": 3,
-                        "title": "Implement experiment and parameter logging",
-                        "description": "",
-                        "details": "",
+                        "title": "Implement metric and parameter logging",
+                        "description": "Add support for logging metrics, parameters, and system information to AIM",
+                        "dependencies": ["13.2"],
+                        "details": "Implement log_metric, log_metrics, log_param, log_params methods with proper AIM metric tracking. Support AIM's context-based metric grouping and step-based metric logging. Handle batch operations efficiently.",
                         "status": "done",
-                        "dependencies": [],
-                        "parentTaskId": 13
+                        "testStrategy": "Tests for metric logging with various data types, batch logging performance tests"
                     },
                     {
                         "id": 4,
-                        "title": "Implement metric and artifact logging",
-                        "description": "",
-                        "details": "",
+                        "title": "Implement artifact and model management",
+                        "description": "Add artifact storage and model versioning capabilities for AIM backend",
+                        "dependencies": ["13.2"],
+                        "details": "Implement log_artifact, log_artifacts, log_model methods supporting AIM's blob storage. Handle large file uploads, directory structures, and model metadata. Implement artifact retrieval and model loading functionality.",
                         "status": "done",
-                        "dependencies": [],
-                        "parentTaskId": 13
+                        "testStrategy": "Tests for artifact upload/download, model versioning tests, large file handling tests"
                     },
                     {
                         "id": 5,
-                        "title": "Create documentation and examples for AIM backend",
-                        "description": "",
-                        "details": "",
+                        "title": "Add remote AIM server support and finalize integration",
+                        "description": "Implement remote AIM deployment connectivity and complete the backend integration",
+                        "dependencies": ["13.3", "13.4"],
+                        "details": "Add support for connecting to remote AIM servers with proper authentication and SSL/TLS. Implement connection pooling and retry logic. Add comprehensive error handling and logging. Create example notebooks demonstrating local and remote AIM usage.",
                         "status": "done",
-                        "dependencies": [],
-                        "parentTaskId": 13
+                        "testStrategy": "Remote server connectivity tests, SSL/TLS validation tests, end-to-end integration tests with both local and remote deployments"
                     }
                 ]
             },
@@ -448,7 +448,7 @@
             "created": "2024-12-19T10:00:00Z",
             "lastModified": "2024-12-19T10:00:00Z",
             "description": "Tracelet - Intelligent experiment tracking for PyTorch and PyTorch Lightning",
-            "updated": "2025-07-21T10:17:19.399Z"
+            "updated": "2025-07-21T21:22:57.352Z"
         }
     }
 }
