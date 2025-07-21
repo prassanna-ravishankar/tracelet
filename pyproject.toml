@@ -36,7 +36,7 @@ wandb = ["wandb>=0.16.0"]
 # Note: AIM has Python version compatibility issues on 3.13+
 aim = ["aim>=3.17.0; python_version < '3.13'"]
 
-# Framework integrations  
+# Framework integrations
 pytorch = ["torch>=1.13.0", "tensorboard>=2.15.0"]
 lightning = ["pytorch-lightning>=2.0.0"]
 
@@ -64,15 +64,15 @@ dev-dependencies = [
     "deptry>=0.20.0",
     "mypy>=0.991",
     "ruff>=0.6.9",
-    
+
     # Documentation
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
     "mkdocstrings[python]>=0.26.1",
-    
+
     # System monitoring (for collectors)
     "pynvml>=11.0.0",
-    
+
     # Integration testing - install backends for testing
     "clearml>=1.15.0",
     "mlflow>=3.1.1",

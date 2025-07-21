@@ -7,6 +7,7 @@ try:
     import mlflow
     import mlflow.tracking
     from mlflow.tracking import MlflowClient
+
     _has_mlflow = True
 except ImportError:
     _has_mlflow = False
@@ -38,7 +39,7 @@ class MLflowBackend(BackendPlugin):
             description="MLflow backend for experiment tracking",
             author="Tracelet Team",
             dependencies=[],
-            capabilities={"metrics", "parameters", "artifacts", "logging", "model_registry"}
+            capabilities={"metrics", "parameters", "artifacts", "logging", "model_registry"},
         )
 
     def initialize(self, config: dict[str, Any]):
@@ -65,8 +66,8 @@ class MLflowBackend(BackendPlugin):
                 self._experiment_id = self._client.create_experiment(self._experiment_name)
             else:
                 self._experiment_id = experiment.experiment_id
-        except Exception as e:
-            logger.exception(f"Failed to get/create MLflow experiment: {e}")
+        except Exception:
+            logger.exception("Failed to get/create MLflow experiment")
             raise
 
         logger.info(f"Initialized MLflow backend for experiment '{self._experiment_name}' (ID: {self._experiment_id})")
@@ -78,18 +79,15 @@ class MLflowBackend(BackendPlugin):
 
         # Start a new MLflow run
         try:
-            run = self._client.create_run(
-                experiment_id=self._experiment_id,
-                run_name=self._run_name
-            )
+            run = self._client.create_run(experiment_id=self._experiment_id, run_name=self._run_name)
             self._run_id = run.info.run_id
 
             # Set active run
             mlflow.start_run(run_id=self._run_id, nested=True)
 
             logger.info(f"Started MLflow run: {self._run_id}")
-        except Exception as e:
-            logger.exception(f"Failed to start MLflow run: {e}")
+        except Exception:
+            logger.exception("Failed to start MLflow run")
             raise
 
         self._active = True
@@ -101,8 +99,8 @@ class MLflowBackend(BackendPlugin):
                 # End the run
                 mlflow.end_run()
                 logger.info(f"Stopped MLflow run: {self._run_id}")
-            except Exception as e:
-                logger.exception(f"Error stopping MLflow run: {e}")
+            except Exception:
+                logger.exception("Error stopping MLflow run")
 
         self._active = False
 
@@ -124,8 +122,8 @@ class MLflowBackend(BackendPlugin):
                     "start_time": run.info.start_time,
                     "artifact_uri": run.info.artifact_uri,
                 })
-            except Exception as e:
-                logger.exception(f"Error getting run status: {e}")
+            except Exception:
+                logger.exception("Error getting run status")
 
         return status
 
@@ -158,7 +156,7 @@ class MLflowBackend(BackendPlugin):
             key=metric_name,
             value=float(metric.value),
             timestamp=int(metric.timestamp * 1000) if metric.timestamp else None,
-            step=metric.iteration
+            step=metric.iteration,
         )
 
     def _log_parameter(self, metric: MetricData):
@@ -172,11 +170,7 @@ class MLflowBackend(BackendPlugin):
         if len(param_value) > 500:  # MLflow has a limit on param value length
             param_value = param_value[:497] + "..."
 
-        self._client.log_param(
-            run_id=self._run_id,
-            key=param_name,
-            value=param_value
-        )
+        self._client.log_param(run_id=self._run_id, key=param_name, value=param_value)
 
     def _log_artifact(self, metric: MetricData):
         """Log an artifact to MLflow."""
@@ -185,13 +179,9 @@ class MLflowBackend(BackendPlugin):
         artifact_path = metric.metadata.get("artifact_path") if metric.metadata else None
 
         try:
-            self._client.log_artifact(
-                run_id=self._run_id,
-                local_path=file_path,
-                artifact_path=artifact_path
-            )
-        except Exception as e:
-            logger.exception(f"Failed to log artifact '{metric.name}': {e}")
+            self._client.log_artifact(run_id=self._run_id, local_path=file_path, artifact_path=artifact_path)
+        except Exception:
+            logger.exception(f"Failed to log artifact '{metric.name}'")
 
     def _log_custom_metric(self, metric: MetricData):
         """Log a custom metric as a tag in MLflow."""
@@ -203,11 +193,7 @@ class MLflowBackend(BackendPlugin):
         if len(tag_value) > 5000:  # MLflow tag value limit
             tag_value = tag_value[:4997] + "..."
 
-        self._client.set_tag(
-            run_id=self._run_id,
-            key=tag_name,
-            value=tag_value
-        )
+        self._client.set_tag(run_id=self._run_id, key=tag_name, value=tag_value)
 
     # BackendInterface implementation
     def log_metric(self, name: str, value: Any, iteration: int):
@@ -219,7 +205,7 @@ class MLflowBackend(BackendPlugin):
             name=name,
             value=value,
             type=MetricType.SCALAR if isinstance(value, (int, float)) else MetricType.CUSTOM,
-            iteration=iteration
+            iteration=iteration,
         )
         self.receive_metric(metric)
 
@@ -229,11 +215,7 @@ class MLflowBackend(BackendPlugin):
             return
 
         for name, value in params.items():
-            metric = MetricData(
-                name=name,
-                value=value,
-                type=MetricType.PARAMETER
-            )
+            metric = MetricData(name=name, value=value, type=MetricType.PARAMETER)
             self.receive_metric(metric)
 
     def log_artifact(self, local_path: str, artifact_path: Optional[str] = None):
@@ -242,13 +224,9 @@ class MLflowBackend(BackendPlugin):
             return
 
         try:
-            self._client.log_artifact(
-                run_id=self._run_id,
-                local_path=local_path,
-                artifact_path=artifact_path
-            )
-        except Exception as e:
-            logger.exception(f"Failed to log artifact '{local_path}': {e}")
+            self._client.log_artifact(run_id=self._run_id, local_path=local_path, artifact_path=artifact_path)
+        except Exception:
+            logger.exception(f"Failed to log artifact '{local_path}'")
 
     def save_experiment(self, experiment_data: dict[str, Any]):
         """Save experiment metadata to MLflow."""
@@ -264,5 +242,5 @@ class MLflowBackend(BackendPlugin):
                 else:
                     # Log complex data as tags
                     self._client.set_tag(run_id=self._run_id, key=f"exp.{key}", value=str(value))
-            except Exception as e:
-                logger.exception(f"Failed to log experiment metadata '{key}': {e}")
+            except Exception:
+                logger.exception(f"Failed to log experiment metadata '{key}'")

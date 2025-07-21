@@ -91,37 +91,18 @@ class TestDataFlowOrchestrator:
 
     def test_routing_rules(self):
         """Test routing rule functionality"""
-        rule = RoutingRule(
-            source_pattern="test_*",
-            sink_id="sink1",
-            metric_types={MetricType.SCALAR}
-        )
+        rule = RoutingRule(source_pattern="test_*", sink_id="sink1", metric_types={MetricType.SCALAR})
 
         # Test matching
-        metric1 = MetricData(
-            name="metric1",
-            value=1.0,
-            type=MetricType.SCALAR,
-            source="test_source"
-        )
+        metric1 = MetricData(name="metric1", value=1.0, type=MetricType.SCALAR, source="test_source")
         assert rule.matches(metric1)
 
         # Test non-matching source
-        metric2 = MetricData(
-            name="metric2",
-            value=1.0,
-            type=MetricType.SCALAR,
-            source="other_source"
-        )
+        metric2 = MetricData(name="metric2", value=1.0, type=MetricType.SCALAR, source="other_source")
         assert not rule.matches(metric2)
 
         # Test non-matching type
-        metric3 = MetricData(
-            name="metric3",
-            value="artifact",
-            type=MetricType.ARTIFACT,
-            source="test_source"
-        )
+        metric3 = MetricData(name="metric3", value="artifact", type=MetricType.ARTIFACT, source="test_source")
         assert not rule.matches(metric3)
 
     def test_basic_flow(self):
@@ -135,20 +116,14 @@ class TestDataFlowOrchestrator:
 
         orchestrator.register_source(source)
         orchestrator.register_sink(sink)
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="sink1")
-        )
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="sink1"))
 
         # Start orchestrator
         orchestrator.start()
 
         try:
             # Emit metric
-            metric = MetricData(
-                name="test_metric",
-                value=42.0,
-                type=MetricType.SCALAR
-            )
+            metric = MetricData(name="test_metric", value=42.0, type=MetricType.SCALAR)
             source.emit_metric(metric)
 
             # Wait for processing
@@ -175,23 +150,14 @@ class TestDataFlowOrchestrator:
         orchestrator.register_sink(sink2)
 
         # Add routing rules
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="sink1")
-        )
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="sink2")
-        )
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="sink1"))
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="sink2"))
 
         orchestrator.start()
 
         try:
             # Emit scalar metric
-            metric = MetricData(
-                name="scalar_metric",
-                value=1.0,
-                type=MetricType.SCALAR,
-                source="test"
-            )
+            metric = MetricData(name="scalar_metric", value=1.0, type=MetricType.SCALAR, source="test")
             orchestrator.emit_metric(metric)
 
             time.sleep(0.1)
@@ -215,23 +181,15 @@ class TestDataFlowOrchestrator:
         orchestrator.register_sink(artifact_sink)
 
         # Route all metrics to both sinks
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="scalar_sink")
-        )
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="artifact_sink")
-        )
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="scalar_sink"))
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="artifact_sink"))
 
         orchestrator.start()
 
         try:
             # Emit different metric types
-            scalar_metric = MetricData(
-                name="scalar", value=1.0, type=MetricType.SCALAR
-            )
-            artifact_metric = MetricData(
-                name="artifact", value="path/to/file", type=MetricType.ARTIFACT
-            )
+            scalar_metric = MetricData(name="scalar", value=1.0, type=MetricType.SCALAR)
+            artifact_metric = MetricData(name="artifact", value="path/to/file", type=MetricType.ARTIFACT)
 
             orchestrator.emit_metric(scalar_metric)
             orchestrator.emit_metric(artifact_metric)
@@ -276,16 +234,15 @@ class TestDataFlowOrchestrator:
                 return "failing_sink"
 
             def receive_metric(self, metric):
-                raise ValueError("Intentional error")
+                msg = "Intentional error"
+                raise ValueError(msg)
 
             def can_handle_type(self, metric_type):
                 return True
 
         sink = FailingSink()
         orchestrator.register_sink(sink)
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="failing_sink")
-        )
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="failing_sink"))
 
         orchestrator.start()
 
@@ -308,9 +265,7 @@ class TestDataFlowOrchestrator:
         sink = TestMetricSink("sink1")
 
         orchestrator.register_sink(sink)
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="batch_*", sink_id="sink1")
-        )
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="batch_*", sink_id="sink1"))
 
         orchestrator.start()
 
@@ -318,11 +273,7 @@ class TestDataFlowOrchestrator:
             # Use batch emit
             with orchestrator.batch_emit("batch_source") as emit:
                 for i in range(10):
-                    emit(MetricData(
-                        name=f"metric_{i}",
-                        value=i,
-                        type=MetricType.SCALAR
-                    ))
+                    emit(MetricData(name=f"metric_{i}", value=i, type=MetricType.SCALAR))
 
             time.sleep(0.2)
 
@@ -346,11 +297,7 @@ class TestDataFlowOrchestrator:
             return metric.value > 5
 
         orchestrator.add_routing_rule(
-            RoutingRule(
-                source_pattern="*",
-                sink_id="filtered_sink",
-                filter_func=value_filter
-            )
+            RoutingRule(source_pattern="*", sink_id="filtered_sink", filter_func=value_filter)
         )
 
         orchestrator.start()
@@ -358,11 +305,7 @@ class TestDataFlowOrchestrator:
         try:
             # Emit metrics with different values
             for i in range(10):
-                metric = MetricData(
-                    name=f"metric_{i}",
-                    value=i,
-                    type=MetricType.SCALAR
-                )
+                metric = MetricData(name=f"metric_{i}", value=i, type=MetricType.SCALAR)
                 orchestrator.emit_metric(metric)
 
             time.sleep(0.1)
@@ -380,9 +323,7 @@ class TestDataFlowOrchestrator:
         sink = TestMetricSink("concurrent_sink")
 
         orchestrator.register_sink(sink)
-        orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="concurrent_sink")
-        )
+        orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="concurrent_sink"))
 
         orchestrator.start()
 
@@ -391,10 +332,7 @@ class TestDataFlowOrchestrator:
             def emit_metrics(thread_id):
                 for i in range(100):
                     metric = MetricData(
-                        name=f"metric_t{thread_id}_i{i}",
-                        value=i,
-                        type=MetricType.SCALAR,
-                        source=f"thread_{thread_id}"
+                        name=f"metric_t{thread_id}_i{i}", value=i, type=MetricType.SCALAR, source=f"thread_{thread_id}"
                     )
                     orchestrator.emit_metric(metric)
 

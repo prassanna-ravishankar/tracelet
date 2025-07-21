@@ -33,7 +33,7 @@ Install specific backends and frameworks as needed:
 ```bash
 # Backend integrations
 pip install tracelet[mlflow]     # MLflow backend
-pip install tracelet[clearml]    # ClearML backend  
+pip install tracelet[clearml]    # ClearML backend
 pip install tracelet[wandb]      # Weights & Biases backend
 pip install tracelet[aim]        # AIM backend
 

@@ -14,6 +14,7 @@ from .interface import get_active_experiment, start_logging, stop_logging
 # Optional imports - check availability
 try:
     import importlib.util
+
     spec = importlib.util.find_spec("tracelet.backends.mlflow")
     _has_mlflow = spec is not None
 except ImportError:

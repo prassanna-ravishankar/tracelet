@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class PluginType(Enum):
     """Types of plugins supported by the system"""
+
     BACKEND = "backend"
     COLLECTOR = "collector"
     FRAMEWORK = "framework"
@@ -26,6 +27,7 @@ class PluginType(Enum):
 
 class PluginState(IntEnum):
     """Plugin lifecycle states"""
+
     DISCOVERED = 1
     LOADED = 2
     VALIDATED = 3
@@ -38,6 +40,7 @@ class PluginState(IntEnum):
 @dataclass
 class PluginMetadata:
     """Metadata for a plugin"""
+
     name: str
     version: str
     type: PluginType
@@ -51,6 +54,7 @@ class PluginMetadata:
 @dataclass
 class PluginInfo:
     """Information about a discovered plugin"""
+
     metadata: PluginMetadata
     module_path: str
     class_name: str
@@ -190,23 +194,21 @@ class PluginManager:
 
             # Find plugin classes
             for name, obj in inspect.getmembers(module):
-                if (inspect.isclass(obj) and
-                    issubclass(obj, PluginBase) and
-                    obj not in [PluginBase, BackendPlugin, CollectorPlugin]):
-
+                if (
+                    inspect.isclass(obj)
+                    and issubclass(obj, PluginBase)
+                    and obj not in [PluginBase, BackendPlugin, CollectorPlugin]
+                ):
                     try:
                         metadata = obj.get_metadata()
                         return PluginInfo(
-                            metadata=metadata,
-                            module_path=filepath,
-                            class_name=name,
-                            state=PluginState.DISCOVERED
+                            metadata=metadata, module_path=filepath, class_name=name, state=PluginState.DISCOVERED
                         )
-                    except Exception as e:
-                        logger.exception(f"Failed to get metadata from {name}: {e}")
+                    except Exception:
+                        logger.exception(f"Failed to get metadata from {name}")
 
-        except Exception as e:
-            logger.exception(f"Failed to discover plugin in {filepath}: {e}")
+        except Exception:
+            logger.exception(f"Failed to discover plugin in {filepath}")
 
         return None
 
@@ -223,10 +225,7 @@ class PluginManager:
 
         try:
             # Load the module
-            spec = importlib.util.spec_from_file_location(
-                f"plugin_{plugin_name}",
-                plugin_info.module_path
-            )
+            spec = importlib.util.spec_from_file_location(f"plugin_{plugin_name}", plugin_info.module_path)
             if not spec or not spec.loader:
                 raise ImportError(f"Failed to load spec for {plugin_name}")
 
@@ -246,7 +245,7 @@ class PluginManager:
         except Exception as e:
             plugin_info.state = PluginState.ERROR
             plugin_info.error = str(e)
-            logger.exception(f"Failed to load plugin '{plugin_name}': {e}")
+            logger.exception(f"Failed to load plugin '{plugin_name}'")
             return False
 
     def validate_plugin(self, plugin_name: str) -> bool:
@@ -261,7 +260,7 @@ class PluginManager:
 
         try:
             # Check required methods
-            required_methods = ['get_metadata', 'initialize', 'start', 'stop', 'get_status']
+            required_methods = ["get_metadata", "initialize", "start", "stop", "get_status"]
             plugin_class = plugin_info.instance
 
             for method in required_methods:
@@ -365,10 +364,7 @@ class PluginManager:
 
     def get_plugins_by_type(self, plugin_type: PluginType) -> list[PluginInfo]:
         """Get all plugins of a specific type"""
-        return [
-            info for info in self.plugins.values()
-            if info.metadata.type == plugin_type
-        ]
+        return [info for info in self.plugins.values() if info.metadata.type == plugin_type]
 
     def resolve_dependencies(self, plugin_names: list[str]) -> list[str]:
         """Resolve plugin dependencies and return load order"""
@@ -415,7 +411,7 @@ class PluginManager:
             "loaded": sum(1 for p in self.plugins.values() if p.state >= PluginState.LOADED),
             "active": sum(1 for p in self.plugins.values() if p.state == PluginState.ACTIVE),
             "errors": sum(1 for p in self.plugins.values() if p.state == PluginState.ERROR),
-            "plugins": {}
+            "plugins": {},
         }
 
         for name, info in self.plugins.items():

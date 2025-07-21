@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 try:
     from clearml import Logger, Task
+
     _has_clearml = True
 except ImportError:
     _has_clearml = False
@@ -35,7 +36,7 @@ class ClearMLBackend(BackendPlugin):
             description="ClearML backend for experiment tracking",
             author="Tracelet Team",
             dependencies=[],
-            capabilities={"metrics", "parameters", "artifacts", "logging"}
+            capabilities={"metrics", "parameters", "artifacts", "logging"},
         )
 
     def initialize(self, config: dict[str, Any]):
@@ -86,7 +87,7 @@ class ClearMLBackend(BackendPlugin):
             status.update({
                 "task_id": self._task.id,
                 "task_url": self._task.get_output_log_web_page(),
-                "task_status": str(self._task.get_status()) if self._task.get_status() else "unknown"
+                "task_status": str(self._task.get_status()) if self._task.get_status() else "unknown",
             })
 
         return status
@@ -106,8 +107,8 @@ class ClearMLBackend(BackendPlugin):
             else:
                 # Log as custom metric
                 self._log_custom_metric(metric)
-        except Exception as e:
-            logger.exception(f"Failed to log metric '{metric.name}' to ClearML: {e}")
+        except Exception:
+            logger.exception(f"Failed to log metric '{metric.name}' to ClearML")
 
     def _log_scalar_metric(self, metric: MetricData):
         """Log a scalar metric to ClearML."""
@@ -115,12 +116,7 @@ class ClearMLBackend(BackendPlugin):
         if metric.source:
             series = f"{metric.source}/{metric.name}"
 
-        self._logger.report_scalar(
-            title="Metrics",
-            series=series,
-            value=metric.value,
-            iteration=metric.iteration or 0
-        )
+        self._logger.report_scalar(title="Metrics", series=series, value=metric.value, iteration=metric.iteration or 0)
 
     def _log_parameter(self, metric: MetricData):
         """Log a parameter to ClearML."""
@@ -137,16 +133,14 @@ class ClearMLBackend(BackendPlugin):
             # Upload artifact
             self._task.upload_artifact(
                 name=artifact_path or metric.name,
-                artifact_object=metric.value  # This should be the file path
+                artifact_object=metric.value,  # This should be the file path
             )
 
     def _log_custom_metric(self, metric: MetricData):
         """Log a custom metric to ClearML."""
         # Log as text or debug info
         if self._logger:
-            self._logger.report_text(
-                f"Custom Metric: {metric.name} = {metric.value} (type: {metric.type.value})"
-            )
+            self._logger.report_text(f"Custom Metric: {metric.name} = {metric.value} (type: {metric.type.value})")
 
     # BackendInterface implementation
     def log_metric(self, name: str, value: Any, iteration: int):
@@ -155,7 +149,7 @@ class ClearMLBackend(BackendPlugin):
             name=name,
             value=value,
             type=MetricType.SCALAR if isinstance(value, (int, float)) else MetricType.CUSTOM,
-            iteration=iteration
+            iteration=iteration,
         )
         self.receive_metric(metric)
 
@@ -167,10 +161,7 @@ class ClearMLBackend(BackendPlugin):
     def log_artifact(self, local_path: str, artifact_path: Optional[str] = None):
         """Upload an artifact to ClearML."""
         if self._task:
-            self._task.upload_artifact(
-                name=artifact_path or local_path,
-                artifact_object=local_path
-            )
+            self._task.upload_artifact(name=artifact_path or local_path, artifact_object=local_path)
 
     def save_experiment(self, experiment_data: dict[str, Any]):
         """Save experiment metadata to ClearML."""

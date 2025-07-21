@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class MetricType(Enum):
     """Types of metrics that can flow through the system"""
+
     SCALAR = "scalar"
     TENSOR = "tensor"
     ARTIFACT = "artifact"
@@ -24,6 +25,7 @@ class MetricType(Enum):
 @dataclass
 class MetricData:
     """Container for metric data flowing through the system"""
+
     name: str
     value: Any
     type: MetricType
@@ -73,6 +75,7 @@ class MetricSink(ABC):
 @dataclass
 class RoutingRule:
     """Rule for routing metrics from sources to sinks"""
+
     source_pattern: str  # Can use wildcards
     sink_id: str
     metric_types: Optional[set[MetricType]] = None
@@ -81,8 +84,11 @@ class RoutingRule:
     def matches(self, metric: MetricData) -> bool:
         """Check if this rule matches the given metric"""
         # Check source pattern
-        if (self.source_pattern != "*" and metric.source and
-            not self._matches_pattern(metric.source, self.source_pattern)):
+        if (
+            self.source_pattern != "*"
+            and metric.source
+            and not self._matches_pattern(metric.source, self.source_pattern)
+        ):
             return False
 
         # Check metric type
@@ -128,7 +134,8 @@ class DataFlowOrchestrator:
         with self._lock:
             source_id = source.get_source_id()
             if source_id in self.sources:
-                raise ValueError(f"Source '{source_id}' already registered")
+                msg = f"Source '{source_id}' already registered"
+                raise ValueError(msg)
             self.sources[source_id] = source
             logger.info(f"Registered metric source: {source_id}")
 
@@ -137,7 +144,8 @@ class DataFlowOrchestrator:
         with self._lock:
             sink_id = sink.get_sink_id()
             if sink_id in self.sinks:
-                raise ValueError(f"Sink '{sink_id}' already registered")
+                msg = f"Sink '{sink_id}' already registered"
+                raise ValueError(msg)
             self.sinks[sink_id] = sink
             logger.info(f"Registered metric sink: {sink_id}")
 
@@ -167,11 +175,7 @@ class DataFlowOrchestrator:
 
             # Start worker threads
             for i in range(self.num_workers):
-                worker = threading.Thread(
-                    target=self._worker_loop,
-                    name=f"DataFlowWorker-{i}",
-                    daemon=True
-                )
+                worker = threading.Thread(target=self._worker_loop, name=f"DataFlowWorker-{i}", daemon=True)
                 worker.start()
                 self.workers.append(worker)
 
@@ -188,7 +192,7 @@ class DataFlowOrchestrator:
             # Add sentinel values to wake up workers
             for _ in range(self.num_workers):
                 with suppress(queue.Full):
-                    self.metric_queue.put(None, timeout=timeout/2)
+                    self.metric_queue.put(None, timeout=timeout / 2)
 
             # Wait for workers to finish
             for worker in self.workers:
@@ -266,5 +270,5 @@ class DataFlowOrchestrator:
             "num_sources": len(self.sources),
             "num_sinks": len(self.sinks),
             "num_routing_rules": len(self.routing_rules),
-            "running": self.running
+            "running": self.running,
         }

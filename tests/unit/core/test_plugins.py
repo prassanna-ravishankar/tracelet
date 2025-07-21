@@ -29,7 +29,7 @@ class MockBackendPlugin(BackendPlugin):
             description="Test backend plugin",
             author="Test Author",
             dependencies=[],
-            capabilities={"logging", "storage"}
+            capabilities={"logging", "storage"},
         )
 
     def initialize(self, config: dict):
@@ -43,10 +43,7 @@ class MockBackendPlugin(BackendPlugin):
         self._active = False
 
     def get_status(self) -> dict:
-        return {
-            "active": self._active,
-            "metrics_received": len(self._metrics)
-        }
+        return {"active": self._active, "metrics_received": len(self._metrics)}
 
     # BackendInterface methods
     def log_metric(self, name: str, value: any, iteration: int):
@@ -76,7 +73,7 @@ class MockCollectorPlugin(CollectorPlugin):
             version="1.0.0",
             type=PluginType.COLLECTOR,
             description="Test collector plugin",
-            dependencies=["test_backend"]
+            dependencies=["test_backend"],
         )
 
     def initialize(self, config: dict):
@@ -100,7 +97,8 @@ class BrokenPlugin(PluginBase):
 
     @classmethod
     def get_metadata(cls) -> PluginMetadata:
-        raise ValueError("Broken metadata")
+        msg = "Broken metadata"
+        raise ValueError(msg)
 
 
 class TestPluginManager:
@@ -118,7 +116,7 @@ class TestPluginManager:
         """Test plugin discovery in a single file"""
         # Create a plugin file
         plugin_file = tmp_path / "test_plugin.py"
-        plugin_file.write_text('''
+        plugin_file.write_text("""
 from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
 
 class TestPlugin(BackendPlugin):
@@ -139,7 +137,7 @@ class TestPlugin(BackendPlugin):
     def log_artifact(self, local_path, artifact_path=None): pass
     def save_experiment(self, data): pass
     def receive_metric(self, metric): pass
-''')
+""")
 
         manager = PluginManager([str(plugin_file)], use_default_paths=False)
         discovered = manager.discover_plugins()
@@ -153,7 +151,7 @@ class TestPlugin(BackendPlugin):
         # Create multiple plugin files
         for i in range(3):
             plugin_file = tmp_path / f"plugin_{i}.py"
-            plugin_file.write_text(f'''
+            plugin_file.write_text(f"""
 from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
 
 class Plugin{i}(BackendPlugin):
@@ -174,7 +172,7 @@ class Plugin{i}(BackendPlugin):
     def log_artifact(self, local_path, artifact_path=None): pass
     def save_experiment(self, data): pass
     def receive_metric(self, metric): pass
-''')
+""")
 
         manager = PluginManager([str(tmp_path)], use_default_paths=False)
         discovered = manager.discover_plugins()
@@ -187,7 +185,7 @@ class Plugin{i}(BackendPlugin):
         """Test plugin loading"""
         # Create a plugin file
         plugin_file = tmp_path / "loadable_plugin.py"
-        plugin_file.write_text('''
+        plugin_file.write_text("""
 from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
 
 class LoadablePlugin(BackendPlugin):
@@ -210,7 +208,7 @@ class LoadablePlugin(BackendPlugin):
     def log_artifact(self, local_path, artifact_path=None): pass
     def save_experiment(self, data): pass
     def receive_metric(self, metric): pass
-''')
+""")
 
         manager = PluginManager([str(plugin_file)])
         manager.discover_plugins()
@@ -233,7 +231,7 @@ class LoadablePlugin(BackendPlugin):
             metadata=MockBackendPlugin.get_metadata(),
             module_path="test",
             class_name="MockBackendPlugin",
-            instance=MockBackendPlugin
+            instance=MockBackendPlugin,
         )
         plugin_info.state = PluginState.LOADED
         manager.plugins["test_backend"] = plugin_info
@@ -245,14 +243,12 @@ class LoadablePlugin(BackendPlugin):
 
     def test_validate_plugin_missing_methods(self):
         """Test validation fails for incomplete plugin"""
+
         class IncompletePlugin:  # Not inheriting from PluginBase
             @classmethod
             def get_metadata(cls):
-                return PluginMetadata(
-                    name="incomplete",
-                    version="1.0.0",
-                    type=PluginType.BACKEND
-                )
+                return PluginMetadata(name="incomplete", version="1.0.0", type=PluginType.BACKEND)
+
             # Missing required methods like initialize, start, stop, get_status
 
         manager = PluginManager()
@@ -260,7 +256,7 @@ class LoadablePlugin(BackendPlugin):
             metadata=IncompletePlugin.get_metadata(),
             module_path="test",
             class_name="IncompletePlugin",
-            instance=IncompletePlugin
+            instance=IncompletePlugin,
         )
         plugin_info.state = PluginState.LOADED
         manager.plugins["incomplete"] = plugin_info
@@ -278,7 +274,7 @@ class LoadablePlugin(BackendPlugin):
             metadata=MockBackendPlugin.get_metadata(),
             module_path="test",
             class_name="MockBackendPlugin",
-            instance=MockBackendPlugin
+            instance=MockBackendPlugin,
         )
         plugin_info.state = PluginState.VALIDATED
         manager.plugins["test_backend"] = plugin_info
@@ -303,7 +299,7 @@ class LoadablePlugin(BackendPlugin):
             metadata=MockBackendPlugin.get_metadata(),
             module_path="test",
             class_name="MockBackendPlugin",
-            instance=MockBackendPlugin
+            instance=MockBackendPlugin,
         )
         plugin_info.state = PluginState.VALIDATED
         manager.plugins["test_backend"] = plugin_info
@@ -330,17 +326,8 @@ class LoadablePlugin(BackendPlugin):
         # Create plugins with dependencies
         # A depends on B, B depends on C
         for name, deps in [("A", ["B"]), ("B", ["C"]), ("C", [])]:
-            metadata = PluginMetadata(
-                name=name,
-                version="1.0.0",
-                type=PluginType.BACKEND,
-                dependencies=deps
-            )
-            manager.plugins[name] = PluginInfo(
-                metadata=metadata,
-                module_path="test",
-                class_name=f"Plugin{name}"
-            )
+            metadata = PluginMetadata(name=name, version="1.0.0", type=PluginType.BACKEND, dependencies=deps)
+            manager.plugins[name] = PluginInfo(metadata=metadata, module_path="test", class_name=f"Plugin{name}")
 
         # Resolve dependencies
         order = manager.resolve_dependencies(["A", "B", "C"])
@@ -352,17 +339,8 @@ class LoadablePlugin(BackendPlugin):
 
         # Create circular dependency: A -> B -> C -> A
         for name, deps in [("A", ["B"]), ("B", ["C"]), ("C", ["A"])]:
-            metadata = PluginMetadata(
-                name=name,
-                version="1.0.0",
-                type=PluginType.BACKEND,
-                dependencies=deps
-            )
-            manager.plugins[name] = PluginInfo(
-                metadata=metadata,
-                module_path="test",
-                class_name=f"Plugin{name}"
-            )
+            metadata = PluginMetadata(name=name, version="1.0.0", type=PluginType.BACKEND, dependencies=deps)
+            manager.plugins[name] = PluginInfo(metadata=metadata, module_path="test", class_name=f"Plugin{name}")
 
         # Should raise error for circular dependency
         with pytest.raises(ValueError, match="Circular dependency"):
@@ -373,26 +351,12 @@ class LoadablePlugin(BackendPlugin):
         manager = PluginManager()
 
         # Add different types of plugins
-        backend_metadata = PluginMetadata(
-            name="backend1",
-            version="1.0.0",
-            type=PluginType.BACKEND
-        )
-        collector_metadata = PluginMetadata(
-            name="collector1",
-            version="1.0.0",
-            type=PluginType.COLLECTOR
-        )
+        backend_metadata = PluginMetadata(name="backend1", version="1.0.0", type=PluginType.BACKEND)
+        collector_metadata = PluginMetadata(name="collector1", version="1.0.0", type=PluginType.COLLECTOR)
 
-        manager.plugins["backend1"] = PluginInfo(
-            metadata=backend_metadata,
-            module_path="test",
-            class_name="Backend1"
-        )
+        manager.plugins["backend1"] = PluginInfo(metadata=backend_metadata, module_path="test", class_name="Backend1")
         manager.plugins["collector1"] = PluginInfo(
-            metadata=collector_metadata,
-            module_path="test",
-            class_name="Collector1"
+            metadata=collector_metadata, module_path="test", class_name="Collector1"
         )
 
         # Get by type
@@ -410,12 +374,7 @@ class LoadablePlugin(BackendPlugin):
 
         # Create config file
         config_file = tmp_path / "config.json"
-        config_data = {
-            "plugins": {
-                "backend1": {"host": "localhost", "port": 8080},
-                "collector1": {"interval": 30}
-            }
-        }
+        config_data = {"plugins": {"backend1": {"host": "localhost", "port": 8080}, "collector1": {"interval": 30}}}
         config_file.write_text(json.dumps(config_data))
 
         # Load config
@@ -428,17 +387,8 @@ class LoadablePlugin(BackendPlugin):
 
         # Add plugins in different states
         for i, state in enumerate([PluginState.DISCOVERED, PluginState.ACTIVE, PluginState.ERROR]):
-            metadata = PluginMetadata(
-                name=f"plugin_{i}",
-                version="1.0.0",
-                type=PluginType.BACKEND
-            )
-            plugin_info = PluginInfo(
-                metadata=metadata,
-                module_path="test",
-                class_name=f"Plugin{i}",
-                state=state
-            )
+            metadata = PluginMetadata(name=f"plugin_{i}", version="1.0.0", type=PluginType.BACKEND)
+            plugin_info = PluginInfo(metadata=metadata, module_path="test", class_name=f"Plugin{i}", state=state)
             if state == PluginState.ERROR:
                 plugin_info.error = "Test error"
             manager.plugins[f"plugin_{i}"] = plugin_info
@@ -468,11 +418,7 @@ class LoadablePlugin(BackendPlugin):
         plugin.initialize({})
         plugin.start()
 
-        metric = MetricData(
-            name="test_metric",
-            value=42,
-            type=MetricType.SCALAR
-        )
+        metric = MetricData(name="test_metric", value=42, type=MetricType.SCALAR)
         plugin.receive_metric(metric)
 
         status = plugin.get_status()

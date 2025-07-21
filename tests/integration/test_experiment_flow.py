@@ -9,6 +9,7 @@ import pytest
 # Test imports
 try:
     from tracelet.plugins.mlflow_backend import MLflowBackend
+
     _has_mlflow = True
 except ImportError:
     _has_mlflow = False
@@ -16,6 +17,7 @@ except ImportError:
 
 try:
     from tracelet.plugins.clearml_backend import ClearMLBackend
+
     _has_clearml = True
 except ImportError:
     _has_clearml = False
@@ -33,26 +35,18 @@ class TestExperimentTrackingFlow:
         """Test a complete experiment with MLflow backend."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create experiment with MLflow backend
-            config = ExperimentConfig(
-                track_metrics=True,
-                track_environment=True,
-                track_args=True
-            )
+            config = ExperimentConfig(track_metrics=True, track_environment=True, track_args=True)
 
             # For this test, we'll manually set up the backend
             # In practice, this would be done via configuration
-            experiment = Experiment(
-                name="Complete MLflow Test",
-                config=config,
-                tags=["integration_test", "mlflow"]
-            )
+            experiment = Experiment(name="Complete MLflow Test", config=config, tags=["integration_test", "mlflow"])
 
             # Manually add MLflow backend to plugin manager
             backend = MLflowBackend()
             backend_config = {
                 "experiment_name": "Tracelet Integration Test",
                 "run_name": "Complete Test Run",
-                "tracking_uri": f"file://{temp_dir}/mlruns"
+                "tracking_uri": f"file://{temp_dir}/mlruns",
             }
 
             backend.initialize(backend_config)
@@ -62,9 +56,8 @@ class TestExperimentTrackingFlow:
 
             # Add routing rule
             from tracelet.core.orchestrator import RoutingRule
-            experiment._orchestrator.add_routing_rule(
-                RoutingRule(source_pattern="*", sink_id=backend.get_sink_id())
-            )
+
+            experiment._orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id=backend.get_sink_id()))
 
             # Start experiment and backend
             backend.start()
@@ -78,7 +71,7 @@ class TestExperimentTrackingFlow:
                     "learning_rate": 0.001,
                     "batch_size": 32,
                     "model_type": "transformer",
-                    "dataset": "custom_dataset"
+                    "dataset": "custom_dataset",
                 })
 
                 # 2. Training loop simulation
@@ -128,6 +121,7 @@ Model Summary:
 
             # Verify data was logged to MLflow
             import mlflow
+
             mlflow.set_tracking_uri(f"file://{temp_dir}/mlruns")
 
             exp = mlflow.get_experiment_by_name("Tracelet Integration Test")
@@ -162,7 +156,7 @@ Model Summary:
                     module_path="tracelet.plugins.mlflow_backend",
                     class_name="MLflowBackend",
                     instance=MLflowBackend,  # Pass the class, not instance
-                    state=PluginState.LOADED   # Set to LOADED since we have class
+                    state=PluginState.LOADED,  # Set to LOADED since we have class
                 )
                 plugin_manager.plugins["mlflow"] = mlflow_info
 
@@ -170,10 +164,7 @@ Model Summary:
                 assert plugin_manager.validate_plugin("mlflow")
 
                 # Test plugin initialization
-                config = {
-                    "experiment_name": "Plugin Manager Test",
-                    "tracking_uri": f"file://{temp_dir}/mlruns"
-                }
+                config = {"experiment_name": "Plugin Manager Test", "tracking_uri": f"file://{temp_dir}/mlruns"}
                 assert plugin_manager.initialize_plugin("mlflow", config)
 
                 # Test plugin starting
@@ -192,9 +183,7 @@ Model Summary:
         """Test experiment with multiple backends (if available)."""
         with tempfile.TemporaryDirectory() as temp_dir:
             experiment = Experiment(
-                name="Multi-Backend Test",
-                config=ExperimentConfig(track_metrics=True),
-                tags=["multi_backend"]
+                name="Multi-Backend Test", config=ExperimentConfig(track_metrics=True), tags=["multi_backend"]
             )
 
             backends = []
@@ -202,10 +191,7 @@ Model Summary:
             # Add MLflow backend if available
             if _has_mlflow:
                 mlflow_backend = MLflowBackend()
-                mlflow_config = {
-                    "experiment_name": "Multi Backend MLflow",
-                    "tracking_uri": f"file://{temp_dir}/mlruns"
-                }
+                mlflow_config = {"experiment_name": "Multi Backend MLflow", "tracking_uri": f"file://{temp_dir}/mlruns"}
                 mlflow_backend.initialize(mlflow_config)
                 backends.append(mlflow_backend)
 
@@ -214,6 +200,7 @@ Model Summary:
 
                 # Route all metrics to MLflow
                 from tracelet.core.orchestrator import RoutingRule
+
                 experiment._orchestrator.add_routing_rule(
                     RoutingRule(source_pattern="*", sink_id=mlflow_backend.get_sink_id())
                 )
@@ -222,6 +209,7 @@ Model Summary:
             if _has_clearml:
                 try:
                     import os
+
                     os.environ["CLEARML_WEB_HOST"] = ""
                     os.environ["CLEARML_API_HOST"] = ""
                     os.environ["CLEARML_FILES_HOST"] = ""
@@ -230,7 +218,7 @@ Model Summary:
                     clearml_config = {
                         "project_name": "Multi Backend Test",
                         "task_name": "Multi Backend Task",
-                        "auto_connect_frameworks": False
+                        "auto_connect_frameworks": False,
                     }
                     clearml_backend.initialize(clearml_config)
                     backends.append(clearml_backend)
@@ -240,12 +228,13 @@ Model Summary:
 
                     # Route all metrics to ClearML as well
                     from tracelet.core.orchestrator import RoutingRule
+
                     experiment._orchestrator.add_routing_rule(
                         RoutingRule(source_pattern="*", sink_id=clearml_backend.get_sink_id())
                     )
-                except Exception:
+                except Exception as e:
                     # ClearML might fail in CI environments
-                    pass
+                    print(f"ClearML backend setup failed (expected in CI): {e}")
 
             if not backends:
                 pytest.skip("No backends available for testing")
@@ -279,10 +268,7 @@ Model Summary:
 
     def test_error_handling_in_experiment_flow(self):
         """Test error handling during experiment tracking."""
-        experiment = Experiment(
-            name="Error Handling Test",
-            config=ExperimentConfig(track_metrics=True)
-        )
+        experiment = Experiment(name="Error Handling Test", config=ExperimentConfig(track_metrics=True))
 
         # Create a mock backend that will fail
         class FailingBackend:
@@ -293,15 +279,15 @@ Model Summary:
                 return True
 
             def receive_metric(self, metric):
-                raise ValueError("Simulated backend failure")
+                msg = "Simulated backend failure"
+                raise ValueError(msg)
 
         failing_backend = FailingBackend()
         experiment._orchestrator.register_sink(failing_backend)
 
         from tracelet.core.orchestrator import RoutingRule
-        experiment._orchestrator.add_routing_rule(
-            RoutingRule(source_pattern="*", sink_id="failing_backend")
-        )
+
+        experiment._orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id="failing_backend"))
 
         experiment.start()
 

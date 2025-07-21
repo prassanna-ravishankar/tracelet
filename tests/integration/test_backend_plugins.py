@@ -6,11 +6,15 @@ from pathlib import Path
 
 import pytest
 
+from tracelet.core.orchestrator import DataFlowOrchestrator, MetricData, MetricType, RoutingRule
+from tracelet.core.plugins import PluginManager
+
 # Test imports - these will be skipped if dependencies aren't available
 pytest_plugins = []
 
 try:
     from tracelet.plugins.clearml_backend import ClearMLBackend
+
     _has_clearml = True
 except ImportError:
     _has_clearml = False
@@ -18,13 +22,11 @@ except ImportError:
 
 try:
     from tracelet.plugins.mlflow_backend import MLflowBackend
+
     _has_mlflow = True
 except ImportError:
     _has_mlflow = False
     MLflowBackend = None
-
-from tracelet.core.orchestrator import DataFlowOrchestrator, MetricData, MetricType, RoutingRule
-from tracelet.core.plugins import PluginManager
 
 
 class TestClearMLBackend:
@@ -56,6 +58,7 @@ class TestClearMLBackend:
 
         # Set offline mode
         import os
+
         os.environ["CLEARML_WEB_HOST"] = ""
         os.environ["CLEARML_API_HOST"] = ""
         os.environ["CLEARML_FILES_HOST"] = ""
@@ -88,6 +91,7 @@ class TestClearMLBackend:
 
         # Use offline mode
         import os
+
         os.environ["CLEARML_WEB_HOST"] = ""
         os.environ["CLEARML_API_HOST"] = ""
         os.environ["CLEARML_FILES_HOST"] = ""
@@ -97,23 +101,14 @@ class TestClearMLBackend:
             plugin.start()
 
             # Test scalar metric
-            metric = MetricData(
-                name="accuracy",
-                value=0.95,
-                type=MetricType.SCALAR,
-                iteration=10,
-                source="test_source"
-            )
+            metric = MetricData(name="accuracy", value=0.95, type=MetricType.SCALAR, iteration=10, source="test_source")
 
             # This should not raise an exception
             plugin.receive_metric(metric)
 
             # Test parameter
             param_metric = MetricData(
-                name="learning_rate",
-                value=0.001,
-                type=MetricType.PARAMETER,
-                source="test_source"
+                name="learning_rate", value=0.001, type=MetricType.PARAMETER, source="test_source"
             )
 
             plugin.receive_metric(param_metric)
@@ -150,7 +145,7 @@ class TestMLflowBackend:
             config = {
                 "experiment_name": "Test Experiment",
                 "run_name": "Test Run",
-                "tracking_uri": f"file://{temp_dir}/mlruns"
+                "tracking_uri": f"file://{temp_dir}/mlruns",
             }
 
             plugin.initialize(config)
@@ -179,40 +174,24 @@ class TestMLflowBackend:
             config = {
                 "experiment_name": "Metric Test Experiment",
                 "run_name": "Metric Test Run",
-                "tracking_uri": f"file://{temp_dir}/mlruns"
+                "tracking_uri": f"file://{temp_dir}/mlruns",
             }
 
             plugin.initialize(config)
             plugin.start()
 
             # Test scalar metric
-            metric = MetricData(
-                name="loss",
-                value=0.123,
-                type=MetricType.SCALAR,
-                iteration=5,
-                source="training"
-            )
+            metric = MetricData(name="loss", value=0.123, type=MetricType.SCALAR, iteration=5, source="training")
 
             plugin.receive_metric(metric)
 
             # Test parameter
-            param_metric = MetricData(
-                name="batch_size",
-                value=32,
-                type=MetricType.PARAMETER,
-                source="config"
-            )
+            param_metric = MetricData(name="batch_size", value=32, type=MetricType.PARAMETER, source="config")
 
             plugin.receive_metric(param_metric)
 
             # Test custom metric (should become tag)
-            custom_metric = MetricData(
-                name="model_type",
-                value="transformer",
-                type=MetricType.CUSTOM,
-                source="model"
-            )
+            custom_metric = MetricData(name="model_type", value="transformer", type=MetricType.CUSTOM, source="model")
 
             plugin.receive_metric(custom_metric)
 
@@ -220,6 +199,7 @@ class TestMLflowBackend:
 
             # Verify run was created and data logged
             import mlflow
+
             mlflow.set_tracking_uri(f"file://{temp_dir}/mlruns")
 
             experiment = mlflow.get_experiment_by_name("Metric Test Experiment")
@@ -237,10 +217,7 @@ class TestMLflowBackend:
         with tempfile.TemporaryDirectory() as temp_dir:
             plugin = MLflowBackend()
 
-            config = {
-                "experiment_name": "Artifact Test Experiment",
-                "tracking_uri": f"file://{temp_dir}/mlruns"
-            }
+            config = {"experiment_name": "Artifact Test Experiment", "tracking_uri": f"file://{temp_dir}/mlruns"}
 
             plugin.initialize(config)
             plugin.start()
@@ -254,7 +231,7 @@ class TestMLflowBackend:
                 name="test_artifact",
                 value=str(test_file),
                 type=MetricType.ARTIFACT,
-                metadata={"artifact_path": "test_files"}
+                metadata={"artifact_path": "test_files"},
             )
 
             plugin.receive_metric(artifact_metric)
@@ -288,10 +265,7 @@ class TestBackendPluginIntegration:
 
             # Create and configure MLflow backend
             backend = MLflowBackend()
-            config = {
-                "experiment_name": "Integration Test",
-                "tracking_uri": f"file://{temp_dir}/mlruns"
-            }
+            config = {"experiment_name": "Integration Test", "tracking_uri": f"file://{temp_dir}/mlruns"}
 
             backend.initialize(config)
             backend.start()
@@ -300,9 +274,7 @@ class TestBackendPluginIntegration:
             orchestrator.register_sink(backend)
 
             # Add routing rule
-            orchestrator.add_routing_rule(
-                RoutingRule(source_pattern="*", sink_id=backend.get_sink_id())
-            )
+            orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id=backend.get_sink_id()))
 
             # Start orchestrator
             orchestrator.start()
@@ -344,7 +316,7 @@ class TestBackendPluginIntegration:
                 module_path="tracelet.plugins.mlflow_backend",
                 class_name="MLflowBackend",
                 instance=MLflowBackend,
-                state=PluginState.LOADED
+                state=PluginState.LOADED,
             )
 
             manager.plugins["mlflow"] = plugin_info
@@ -354,6 +326,7 @@ class TestBackendPluginIntegration:
 
             # Test getting plugins by type
             from tracelet.core.plugins import PluginType
+
             backend_plugins = manager.get_plugins_by_type(PluginType.BACKEND)
             assert len(backend_plugins) >= 1
             assert any(p.metadata.name == "mlflow" for p in backend_plugins)
