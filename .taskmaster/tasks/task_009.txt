@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: GPU Monitoring Enhancement
+# Status: done
+# Dependencies: 4
+# Priority: medium
+# Description: Add GPU monitoring via NVML to system metrics collection
+# Details:
+Extend system metrics to include GPU monitoring using NVML when available. This provides critical information for GPU-intensive training workloads.
+
+# Test Strategy:
+Unit tests with mock NVML, integration tests on systems with NVIDIA GPUs

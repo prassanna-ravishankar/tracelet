@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: PyTorch Lightning Integration
+# Status: done
+# Dependencies: 1, 3
+# Priority: high
+# Description: Implement PyTorch Lightning integration with trainer patching and callback hooks
+# Details:
+Add deep integration with PyTorch Lightning by patching Trainer methods and implementing callback hooks. This should automatically capture Lightning-specific metrics and training state.
+
+# Test Strategy:
+Integration tests with Lightning training scripts, compatibility tests across Lightning versions

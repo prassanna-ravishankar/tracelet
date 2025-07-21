@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: Multi-Backend Support
+# Status: pending
+# Dependencies: 2, 10, 11, 13
+# Priority: low
+# Description: Enable simultaneous logging to multiple platforms
+# Details:
+Implement support for logging experiments to multiple backends simultaneously. This allows users to maintain backups or use different platforms for different purposes.
+
+# Test Strategy:
+Integration tests with multiple backends, performance tests for concurrent logging

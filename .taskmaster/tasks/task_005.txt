@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Git Repository Tracking
+# Status: done
+# Dependencies: 1
+# Priority: medium
+# Description: Implement Git repository tracking with comprehensive metadata capture
+# Details:
+Use GitPython to capture repository state including branch, commit hash, uncommitted changes, and remote information. This is critical for experiment reproducibility and tracking code versions.
+
+# Test Strategy:
+Unit tests with mock Git repositories, integration tests with real Git repos

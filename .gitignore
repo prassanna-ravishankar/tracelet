@@ -173,3 +173,6 @@ wandb/
 clearml_cache/
 .clearml/
 aim_repos/
+
+demo_results/
+runs/

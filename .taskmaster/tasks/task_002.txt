@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: MLflow Backend Integration
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Implement MLflow backend integration with full CRUD operations
+# Details:
+Create MLflow backend adapter with complete experiment management capabilities. This includes creating experiments, logging metrics, artifacts, and parameters. MLflow will serve as the reference implementation for other backends.
+
+# Test Strategy:
+Integration tests with local MLflow server, Docker Compose setup for testing environment

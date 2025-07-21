@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: System Metrics Collection
+# Status: done
+# Dependencies: 1
+# Priority: medium
+# Description: Implement basic system metrics collection with background threading
+# Details:
+Add CPU and memory monitoring with configurable collection intervals using background threads. This provides essential system information for experiment reproducibility and performance analysis.
+
+# Test Strategy:
+Unit tests for metrics collection, performance tests to ensure minimal overhead

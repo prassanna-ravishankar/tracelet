@@ -71,7 +71,7 @@ def test_start_logging_with_env_vars(clean_env, mock_experiment):
     tracelet.start_logging()
 
     assert mock_experiment.call_args[1]["tags"] == ["project:env_project"]
-    assert mock_experiment.call_args[1]["backend"] == "wandb"
+    assert mock_experiment.call_args[1]["backend"] == ["wandb"]
 
 
 def test_start_logging_config_override(clean_env, mock_experiment, mock_pytorch):

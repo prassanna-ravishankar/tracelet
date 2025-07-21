@@ -367,18 +367,64 @@
                 "id": 13,
                 "title": "AIM Backend Implementation",
                 "description": "Implement AIM backend with local and remote support",
-                "status": "pending",
+                "status": "done",
                 "priority": "low",
                 "dependencies": [2, 10, 11],
                 "details": "Create AIM backend adapter supporting both local and remote AIM deployments. This provides an additional open-source option for experiment tracking.",
                 "testStrategy": "Integration tests with local AIM server, remote AIM deployment tests",
-                "subtasks": []
+                "subtasks": [
+                    {
+                        "id": 1,
+                        "title": "Set up AIM SDK and authentication",
+                        "description": "",
+                        "details": "",
+                        "status": "done",
+                        "dependencies": [],
+                        "parentTaskId": 13
+                    },
+                    {
+                        "id": 2,
+                        "title": "Create AIM backend adapter class",
+                        "description": "",
+                        "details": "",
+                        "status": "done",
+                        "dependencies": [],
+                        "parentTaskId": 13
+                    },
+                    {
+                        "id": 3,
+                        "title": "Implement experiment and parameter logging",
+                        "description": "",
+                        "details": "",
+                        "status": "done",
+                        "dependencies": [],
+                        "parentTaskId": 13
+                    },
+                    {
+                        "id": 4,
+                        "title": "Implement metric and artifact logging",
+                        "description": "",
+                        "details": "",
+                        "status": "done",
+                        "dependencies": [],
+                        "parentTaskId": 13
+                    },
+                    {
+                        "id": 5,
+                        "title": "Create documentation and examples for AIM backend",
+                        "description": "",
+                        "details": "",
+                        "status": "done",
+                        "dependencies": [],
+                        "parentTaskId": 13
+                    }
+                ]
             },
             {
                 "id": 14,
                 "title": "Multi-Backend Support",
                 "description": "Enable simultaneous logging to multiple platforms",
-                "status": "pending",
+                "status": "done",
                 "priority": "low",
                 "dependencies": [2, 10, 11, 13],
                 "details": "Implement support for logging experiments to multiple backends simultaneously. This allows users to maintain backups or use different platforms for different purposes.",
@@ -389,7 +435,7 @@
                 "id": 15,
                 "title": "Documentation and Examples",
                 "description": "Create comprehensive documentation and example implementations",
-                "status": "pending",
+                "status": "done",
                 "priority": "medium",
                 "dependencies": [1, 2, 3],
                 "details": "Develop Sphinx-based documentation with interactive examples, API reference with type hints, and setup guides for each backend. Include sample PyTorch training scripts for testing.",
@@ -402,7 +448,7 @@
             "created": "2024-12-19T10:00:00Z",
             "lastModified": "2024-12-19T10:00:00Z",
             "description": "Tracelet - Intelligent experiment tracking for PyTorch and PyTorch Lightning",
-            "updated": "2025-07-21T09:40:23.043Z"
+            "updated": "2025-07-21T10:17:19.399Z"
         }
     }
 }
