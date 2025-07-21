@@ -20,9 +20,35 @@ Tracelet is an automagic PyTorch metric exporter that seamlessly integrates with
 
 ## Installation
 
+Install the base package:
+
 ```bash
 pip install tracelet
 ```
+
+### Optional Dependencies
+
+Install specific backends and frameworks as needed:
+
+```bash
+# Backend integrations
+pip install tracelet[mlflow]     # MLflow backend
+pip install tracelet[clearml]    # ClearML backend  
+pip install tracelet[wandb]      # Weights & Biases backend
+pip install tracelet[aim]        # AIM backend
+
+# Framework integrations
+pip install tracelet[pytorch]    # PyTorch + TensorBoard support
+pip install tracelet[lightning]  # PyTorch Lightning support
+
+# Install multiple extras
+pip install tracelet[mlflow,pytorch]        # MLflow + PyTorch
+pip install tracelet[backends]              # All backends
+pip install tracelet[frameworks]            # All frameworks
+pip install tracelet[all]                   # Everything
+```
+
+This modular approach keeps your installation lightweight and avoids unnecessary dependencies.
 
 ## Quick Start
 
@@ -60,6 +86,7 @@ settings = TraceletSettings(
 ```
 
 Key environment variables:
+
 - `TRACELET_PROJECT`: Project name
 - `TRACELET_BACKEND`: Tracking backend ("mlflow", "wandb", "aim")
 - `TRACELET_BACKEND_URL`: Backend server URL
@@ -70,6 +97,7 @@ Key environment variables:
 ## Documentation
 
 For more detailed documentation, visit:
+
 - [Documentation](https://prassanna-ravishankar.github.io/tracelet/)
 - [GitHub Repository](https://github.com/prassanna-ravishankar/tracelet/)
 

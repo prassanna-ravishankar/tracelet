@@ -1,12 +1,16 @@
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, List
-from dataclasses import dataclass
-from datetime import datetime
 import uuid
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Optional
+
+from .orchestrator import DataFlowOrchestrator, MetricData, MetricSource, MetricType, RoutingRule
+from .plugins import PluginManager, PluginState, PluginType
+
 
 @dataclass
 class ExperimentConfig:
     """Configuration for experiment tracking"""
+
     track_metrics: bool = True
     track_environment: bool = True
     track_args: bool = True
@@ -14,63 +18,136 @@ class ExperimentConfig:
     track_checkpoints: bool = True
     track_system_metrics: bool = True
     track_git: bool = True
-    
-class Experiment:
+
+
+class Experiment(MetricSource):
     """Main experiment tracking class that orchestrates all tracking functionality"""
-    
+
     def __init__(
         self,
         name: str,
         config: Optional[ExperimentConfig] = None,
         backend: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
     ):
         self.name = name
         self.id = str(uuid.uuid4())
         self.config = config or ExperimentConfig()
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(timezone.utc)
         self.tags = tags or []
         self._current_iteration = 0
         self._active_collectors = []
-        self._backend = None
+        self._backend = backend
         self._framework = None
-        
+
+        # Initialize data flow orchestrator
+        self._orchestrator = DataFlowOrchestrator(max_queue_size=10000, num_workers=4)
+
+        # Initialize plugin manager
+        self._plugin_manager = PluginManager()
+
         self._initialize()
-    
+
+    def get_source_id(self) -> str:
+        """Return unique identifier for this experiment source"""
+        return f"experiment_{self.id}"
+
+    def emit_metric(self, metric: MetricData):
+        """Emit a metric to the orchestrator"""
+        self._orchestrator.emit_metric(metric)
+
     def _initialize(self):
         """Initialize all enabled collectors and backend"""
-        # This will be implemented to set up all the tracking components
-        pass
-        
+        # Register this experiment as a source
+        self._orchestrator.register_source(self)
+
+        # Discover available plugins
+        self._plugin_manager.discover_plugins()
+
+        # Setup backend plugin if specified
+        if self._backend:
+            # Check if backend plugin exists
+            backend_plugins = self._plugin_manager.get_plugins_by_type(PluginType.BACKEND)
+            backend_names = {p.metadata.name for p in backend_plugins}
+
+            if self._backend in backend_names and self._plugin_manager.initialize_plugin(self._backend):
+                backend_instance = self._plugin_manager.get_plugin_instance(self._backend)
+                # Register as sink in orchestrator
+                self._orchestrator.register_sink(backend_instance)
+                # Add routing rule
+                self._orchestrator.add_routing_rule(
+                    RoutingRule(source_pattern="*", sink_id=backend_instance.get_sink_id())
+                )
+
     def start(self):
         """Start the experiment tracking"""
-        # Initialize all collectors
-        pass
-        
+        # Start the orchestrator
+        self._orchestrator.start()
+
+        # Start backend plugin
+        if self._backend:
+            self._plugin_manager.start_plugin(self._backend)
+
+        # Start collector plugins
+        for collector_info in self._plugin_manager.get_plugins_by_type(PluginType.COLLECTOR):
+            if self._plugin_manager.initialize_plugin(collector_info.metadata.name):
+                self._plugin_manager.start_plugin(collector_info.metadata.name)
+
     def stop(self):
         """Stop the experiment tracking"""
-        # Cleanup and flush all data
-        pass
-        
+        # Stop all active plugins
+        for plugin_name, plugin_info in self._plugin_manager.plugins.items():
+            if plugin_info.state == PluginState.ACTIVE:
+                self._plugin_manager.stop_plugin(plugin_name)
+
+        # Stop the orchestrator
+        self._orchestrator.stop()
+
     def log_metric(self, name: str, value: Any, iteration: Optional[int] = None):
         """Log a metric value"""
         iteration = iteration or self._current_iteration
-        # Implementation will delegate to active framework and backend
-        pass
-        
-    def log_params(self, params: Dict[str, Any]):
+
+        # Create metric data
+        metric = MetricData(
+            name=name,
+            value=value,
+            type=MetricType.SCALAR if isinstance(value, (int, float)) else MetricType.CUSTOM,
+            iteration=iteration,
+            source=self.get_source_id(),
+        )
+
+        # Emit to orchestrator
+        self.emit_metric(metric)
+
+    def log_params(self, params: dict[str, Any]):
         """Log experiment parameters"""
-        pass
-        
+        for name, value in params.items():
+            metric = MetricData(
+                name=name,
+                value=value,
+                type=MetricType.PARAMETER,
+                iteration=None,  # Parameters don't have iterations
+                source=self.get_source_id(),
+            )
+            self.emit_metric(metric)
+
     def log_artifact(self, local_path: str, artifact_path: Optional[str] = None):
         """Log a local file as an artifact"""
-        pass
-        
+        metric = MetricData(
+            name=artifact_path or local_path,
+            value=local_path,
+            type=MetricType.ARTIFACT,
+            iteration=None,  # Artifacts don't have iterations
+            source=self.get_source_id(),
+            metadata={"artifact_path": artifact_path},
+        )
+        self.emit_metric(metric)
+
     def set_iteration(self, iteration: int):
         """Set the current iteration"""
         self._current_iteration = iteration
-        
+
     @property
     def iteration(self) -> int:
         """Get current iteration"""
-        return self._current_iteration 
+        return self._current_iteration

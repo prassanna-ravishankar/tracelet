@@ -4,26 +4,33 @@ Tracelet - A lightweight ML experiment tracker
 
 __version__ = "0.1.0"
 
-from .interface import start_logging, stop_logging, get_active_experiment
-from .core.experiment import Experiment, ExperimentConfig
-from .frameworks.pytorch import PyTorchFramework
-from .frameworks.lightning import LightningFramework
-from .backends.mlflow import MLflowBackend
 from .collectors.git import GitCollector
 from .collectors.system import SystemMetricsCollector
+from .core.experiment import Experiment, ExperimentConfig
+from .frameworks.lightning import LightningFramework
+from .frameworks.pytorch import PyTorchFramework
+from .interface import get_active_experiment, start_logging, stop_logging
+
+# Optional imports - check availability
+try:
+    import importlib.util
+    spec = importlib.util.find_spec("tracelet.backends.mlflow")
+    _has_mlflow = spec is not None
+except ImportError:
+    _has_mlflow = False
 
 __all__ = [
-    # Main interface
-    "start_logging",
-    "stop_logging",
-    "get_active_experiment",
-    
     # Core components
     "Experiment",
     "ExperimentConfig",
-    "PyTorchFramework",
-    "LightningFramework",
-    "MLflowBackend",
     "GitCollector",
+    "LightningFramework",
+    "PyTorchFramework",
     "SystemMetricsCollector",
-] 
+    "get_active_experiment",
+    # Main interface
+    "start_logging",
+    "stop_logging",
+]
+
+# Note: MLflowBackend is available via backends.mlflow when _has_mlflow is True

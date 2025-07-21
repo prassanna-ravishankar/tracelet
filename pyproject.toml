@@ -28,6 +28,25 @@ dependencies = [
     "pydantic-settings>=2.0.0",
 ]
 
+[project.optional-dependencies]
+# Backend integrations
+mlflow = ["mlflow>=3.1.1"]
+clearml = ["clearml>=1.15.0"]
+wandb = ["wandb>=0.16.0"]
+# Note: AIM has Python version compatibility issues on 3.13+
+aim = ["aim>=3.17.0; python_version < '3.13'"]
+
+# Framework integrations  
+pytorch = ["torch>=1.13.0", "tensorboard>=2.15.0"]
+lightning = ["pytorch-lightning>=2.0.0"]
+
+# Convenience groups
+backends = ["mlflow>=3.1.1", "clearml>=1.15.0", "wandb>=0.16.0", "aim>=3.17.0; python_version < '3.13'"]
+frameworks = ["torch>=1.13.0", "tensorboard>=2.15.0", "pytorch-lightning>=2.0.0"]
+
+# Complete installation with all optional dependencies
+all = ["mlflow>=3.1.1", "clearml>=1.15.0", "wandb>=0.16.0", "aim>=3.17.0; python_version < '3.13'", "torch>=1.13.0", "tensorboard>=2.15.0", "pytorch-lightning>=2.0.0"]
+
 
 [project.urls]
 Homepage = "https://prassanna-ravishankar.github.io/tracelet/"
@@ -37,20 +56,26 @@ Changelog = "https://github.com/prassanna-ravishankar/tracelet/releases"
 
 [tool.uv]
 dev-dependencies = [
+    # Testing and code quality
     "pytest>=7.2.0",
+    "pytest-cov>=4.0.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
     "deptry>=0.20.0",
     "mypy>=0.991",
-    "pytest-cov>=4.0.0",
     "ruff>=0.6.9",
+    
+    # Documentation
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
     "mkdocstrings[python]>=0.26.1",
-    # Integration testing
-    "tensorboard>=2.4.0",
+    
+    # System monitoring (for collectors)
     "pynvml>=11.0.0",
-    "mlflow>=2.19.0",
+    
+    # Integration testing - install backends for testing
+    "clearml>=1.15.0",
+    "mlflow>=3.1.1",
 ]
 
 [build-system]
@@ -130,4 +155,3 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["tracelet"]
-

@@ -166,3 +166,10 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/
+
+# ML experiment tracking data
+mlruns/
+wandb/
+clearml_cache/
+.clearml/
+aim_repos/
