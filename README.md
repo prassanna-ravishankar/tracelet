@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)
 
 <p align="center">
-  <img src="docs/tracelet.webp" alt="Tracelet Logo" width="400">
+  <img src="docs/tracelet.webp" alt="Tracelet Logo" width="120" height="120">
 </p>
 
 Tracelet is an intelligent experiment tracking library that automatically captures PyTorch and PyTorch Lightning metrics, seamlessly integrating with popular experiment tracking platforms through a modular plugin system.

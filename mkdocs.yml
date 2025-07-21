@@ -29,9 +29,19 @@ nav:
       - Multi-Backend Comparison: examples/multi-backend.md
       - Notebooks: examples/notebooks.md
   - API Reference:
-      - Core: api/core.md
-      - Backends: api/backends.md
-      - Plugins: api/plugins.md
+      - Overview: api/index.md
+      - Main Interface: api/interface.md
+      - Core:
+          - Experiment: api/core/experiment.md
+          - Plugin System: api/core/plugins.md
+      - Settings: api/settings.md
+      - Backends:
+          - MLflow: api/backends/mlflow.md
+      - Frameworks:
+          - PyTorch: api/frameworks/pytorch.md
+      - Data Collection:
+          - Git Collector: api/collectors/git.md
+          - System Metrics: api/collectors/system.md
   - Guides:
       - Best Practices: guides/best-practices.md
       - Troubleshooting: guides/troubleshooting.md
