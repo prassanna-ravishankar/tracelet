@@ -253,23 +253,115 @@
                 "id": 11,
                 "title": "Weights & Biases Backend Implementation",
                 "description": "Implement Weights & Biases backend with free tier testing",
-                "status": "pending",
+                "status": "done",
                 "priority": "medium",
                 "dependencies": [2],
                 "details": "Create W&B backend adapter with comprehensive integration testing using the free tier. Ensure all W&B features are properly mapped to the abstract interface.",
                 "testStrategy": "Integration tests with W&B free tier, validation flows for all W&B features",
-                "subtasks": []
+                "subtasks": [
+                    {
+                        "id": 1,
+                        "title": "Set up W&B development environment and authentication",
+                        "description": "Configure local development environment with Weights & Biases SDK, create free tier account, and implement authentication mechanism for the backend adapter",
+                        "dependencies": [],
+                        "details": "Install wandb Python package, create W&B account credentials configuration, implement secure credential storage and retrieval mechanism compatible with the abstract backend interface. Set up project structure following the established patterns from MLflow and ClearML implementations.",
+                        "status": "done",
+                        "testStrategy": "Unit tests for credential management, integration test for W&B API authentication, validation of free tier limits and capabilities"
+                    },
+                    {
+                        "id": 2,
+                        "title": "Implement core W&B backend adapter class",
+                        "description": "Create the main WandbBackend class implementing the abstract backend interface with experiment lifecycle management",
+                        "dependencies": ["11.1"],
+                        "details": "Implement WandbBackend class inheriting from the abstract base, map W&B runs to experiment abstraction, handle project/entity management, implement experiment creation, initialization, and finalization methods. Ensure compatibility with W&B's run-based model while maintaining interface consistency.",
+                        "status": "done",
+                        "testStrategy": "Unit tests for all backend methods, mock tests for W&B API calls, integration tests for experiment lifecycle operations"
+                    },
+                    {
+                        "id": 3,
+                        "title": "Implement metrics and parameters logging",
+                        "description": "Add support for logging metrics, parameters, and hyperparameters to W&B runs with proper data type handling",
+                        "dependencies": ["11.2"],
+                        "details": "Implement log_metric, log_metrics, log_param, log_params methods with W&B's wandb.log() and wandb.config APIs. Handle step-based metrics, custom x-axis support, and ensure proper data type conversions. Map W&B's flexible logging system to the standardized interface.",
+                        "status": "done",
+                        "testStrategy": "Integration tests for various metric types (scalars, histograms), parameter logging validation, time-series metric tests, batch logging performance tests"
+                    },
+                    {
+                        "id": 4,
+                        "title": "Implement artifact and model management",
+                        "description": "Add support for W&B artifacts API including model versioning, dataset tracking, and general file artifacts",
+                        "dependencies": ["11.2"],
+                        "details": "Implement log_artifact, log_model methods using W&B's artifact API. Support artifact versioning, lineage tracking, and metadata association. Handle large file uploads efficiently within free tier constraints. Map W&B's artifact types to the abstract interface's artifact model.",
+                        "status": "done",
+                        "testStrategy": "Integration tests for file artifacts, model artifact tests with common ML frameworks, artifact versioning tests, free tier storage limit validation"
+                    },
+                    {
+                        "id": 5,
+                        "title": "Add search and visualization features",
+                        "description": "Implement experiment search, comparison, and basic visualization capabilities using W&B's API",
+                        "dependencies": ["11.3", "11.4"],
+                        "details": "Implement search_experiments, compare_experiments methods using W&B's GraphQL API. Add support for querying runs by tags, metrics, and parameters. Implement basic visualization helpers for metrics comparison. Ensure all features work within free tier API rate limits.",
+                        "status": "done",
+                        "testStrategy": "Integration tests for search queries, comparison functionality tests, API rate limit handling tests, visualization export tests"
+                    }
+                ]
             },
             {
                 "id": 12,
                 "title": "End-to-End Integration Testing",
                 "description": "Create comprehensive end-to-end tests for all backends with sample PyTorch workflows",
-                "status": "pending",
+                "status": "done",
                 "priority": "high",
                 "dependencies": [2, 10, 11],
                 "details": "Develop end-to-end integration tests covering all three backends (MLflow, ClearML, W&B) with realistic PyTorch training workflows. This validates the complete system works as intended.",
                 "testStrategy": "Automated testing pipeline with Docker containers, performance benchmarking across backends",
-                "subtasks": []
+                "subtasks": [
+                    {
+                        "id": 1,
+                        "title": "Design E2E Test Framework Architecture",
+                        "description": "Design and implement the base framework for end-to-end integration testing with support for multiple backends",
+                        "dependencies": [],
+                        "details": "Create a flexible test framework that can initialize and teardown test environments for MLflow, ClearML, and W&B. Include utilities for Docker container management, test data generation, and result validation. The framework should support parallel test execution and provide clear separation between backend-specific and common test logic.",
+                        "status": "done",
+                        "testStrategy": "Unit tests for framework components, validation of Docker container lifecycle management"
+                    },
+                    {
+                        "id": 2,
+                        "title": "Create PyTorch Training Workflow Templates",
+                        "description": "Develop realistic PyTorch training workflows that exercise all tracking features across different scenarios",
+                        "dependencies": ["12.1"],
+                        "details": "Implement multiple training scenarios including: simple CNN training, PyTorch Lightning workflows, distributed training simulation, hyperparameter tuning workflows, and model checkpointing scenarios. Each template should exercise metrics logging, artifact storage, parameter tracking, and visualization features.",
+                        "status": "done",
+                        "testStrategy": "Validate templates work independently, ensure all tracking features are exercised"
+                    },
+                    {
+                        "id": 3,
+                        "title": "Implement Backend-Specific E2E Tests",
+                        "description": "Create comprehensive end-to-end test suites for each backend (MLflow, ClearML, W&B) with Docker environments",
+                        "dependencies": ["12.1", "12.2"],
+                        "details": "Develop isolated test suites for each backend that spin up the necessary infrastructure (MLflow server, ClearML server, W&B local instance) using Docker Compose. Tests should cover: experiment creation/deletion, metric logging at scale, artifact upload/download, parameter tracking, Git integration verification, and TensorBoard export validation.",
+                        "status": "done",
+                        "testStrategy": "Docker health checks, backend API verification, data persistence validation"
+                    },
+                    {
+                        "id": 4,
+                        "title": "Performance Benchmarking Suite",
+                        "description": "Implement performance benchmarking tests to compare backend efficiency and identify bottlenecks",
+                        "dependencies": ["12.3"],
+                        "details": "Create benchmarking suite that measures: metric logging throughput, artifact upload/download speeds, memory usage during tracking, API response times, and scalability limits. Generate comparative reports showing performance characteristics of each backend under various load conditions.",
+                        "status": "done",
+                        "testStrategy": "Statistical validation of benchmark results, regression detection between runs"
+                    },
+                    {
+                        "id": 5,
+                        "title": "CI/CD Pipeline Integration",
+                        "description": "Integrate E2E tests into CI/CD pipeline with automated test execution and reporting",
+                        "dependencies": ["12.3", "12.4"],
+                        "details": "Set up GitHub Actions workflows that run E2E tests on multiple Python versions and OS combinations. Include test result aggregation, performance trend tracking, failure notifications, and automated test report generation. Implement test parallelization strategies and caching mechanisms to optimize CI runtime.",
+                        "status": "done",
+                        "testStrategy": "Validate CI pipeline reliability, test flakiness detection and mitigation"
+                    }
+                ]
             },
             {
                 "id": 13,
@@ -310,7 +402,7 @@
             "created": "2024-12-19T10:00:00Z",
             "lastModified": "2024-12-19T10:00:00Z",
             "description": "Tracelet - Intelligent experiment tracking for PyTorch and PyTorch Lightning",
-            "updated": "2025-07-21T09:22:32.449Z"
+            "updated": "2025-07-21T09:40:23.043Z"
         }
     }
 }
