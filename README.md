@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)
 
 <p align="center">
-  <img src="docs/tracelet.webp" alt="Tracelet Logo" width="120" height="120">
+  <img src="https://github.com/prassanna-ravishankar/tracelet/raw/main/docs/tracelet.webp" alt="Tracelet Logo" width="120" height="120">
 </p>
 
 Tracelet is an intelligent experiment tracking library that automatically captures PyTorch and PyTorch Lightning metrics, seamlessly integrating with popular experiment tracking platforms through a modular plugin system.
@@ -78,13 +78,14 @@ pip install tracelet[all]                   # Everything
 ## Demo
 
 <p align="center">
-  <video width="800" controls>
-    <source src="docs/video.mp4" type="video/mp4">
-    Your browser does not support the video tag. <a href="docs/video.mp4">Download the demo video</a>
-  </video>
+  <a href="https://github.com/prassanna-ravishankar/tracelet/raw/main/docs/video.mp4">
+    <img src="https://img.shields.io/badge/🎥_Watch_Demo_Video-4.7MB_MP4-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo Video" />
+  </a>
 </p>
 
-See Tracelet in action! The video above shows how easy it is to get started with automatic experiment tracking.
+**📺 See Tracelet in action!** Click the button above to download and watch our demo video showing how easy it is to get started with automatic experiment tracking.
+
+> **Note**: GitHub doesn't support embedded video playback in README files. The link above will download the MP4 file directly.
 
 ## Quick Start
 
@@ -309,7 +310,7 @@ experiment = tracelet.start_logging(
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guidelines](https://github.com/prassanna-ravishankar/tracelet/blob/main/CONTRIBUTING.md) for details.
 
 ### Development Setup
 
@@ -330,7 +331,7 @@ make check
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](https://github.com/prassanna-ravishankar/tracelet/blob/main/LICENSE) file for details.
 
 ## Acknowledgments
 
