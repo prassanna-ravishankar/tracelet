@@ -39,6 +39,9 @@ aim = ["aim>=3.17.0; python_version < '3.13'"]
 # Framework integrations
 pytorch = ["torch>=1.13.0", "tensorboard>=2.15.0"]
 lightning = ["pytorch-lightning>=2.0.0"]
+tensorboard = [
+    "tensorboard>=2.15.0",
+]
 
 # Convenience groups
 backends = ["mlflow>=3.1.1", "clearml>=1.15.0", "wandb>=0.16.0", "aim>=3.17.0; python_version < '3.13'"]

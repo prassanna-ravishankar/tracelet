@@ -20,6 +20,16 @@ class MetricType(Enum):
     PARAMETER = "parameter"
     SYSTEM = "system"
     CUSTOM = "custom"
+    # Enhanced TensorBoard types
+    HISTOGRAM = "histogram"
+    IMAGE = "image"
+    TEXT = "text"
+    FIGURE = "figure"
+    EMBEDDING = "embedding"
+    VIDEO = "video"
+    AUDIO = "audio"
+    MESH = "mesh"
+    HPARAMS = "hparams"
 
 
 @dataclass

@@ -4509,6 +4509,9 @@ pytorch = [
     { name = "tensorboard" },
     { name = "torch" },
 ]
+tensorboard = [
+    { name = "tensorboard" },
+]
 wandb = [
     { name = "wandb" },
 ]
@@ -4552,6 +4555,7 @@ requires-dist = [
     { name = "tensorboard", marker = "extra == 'all'", specifier = ">=2.15.0" },
     { name = "tensorboard", marker = "extra == 'frameworks'", specifier = ">=2.15.0" },
     { name = "tensorboard", marker = "extra == 'pytorch'", specifier = ">=2.15.0" },
+    { name = "tensorboard", marker = "extra == 'tensorboard'", specifier = ">=2.15.0" },
     { name = "torch", marker = "extra == 'all'", specifier = ">=1.13.0" },
     { name = "torch", marker = "extra == 'frameworks'", specifier = ">=1.13.0" },
     { name = "torch", marker = "extra == 'pytorch'", specifier = ">=1.13.0" },
@@ -4559,7 +4563,7 @@ requires-dist = [
     { name = "wandb", marker = "extra == 'backends'", specifier = ">=0.16.0" },
     { name = "wandb", marker = "extra == 'wandb'", specifier = ">=0.16.0" },
 ]
-provides-extras = ["mlflow", "clearml", "wandb", "aim", "pytorch", "lightning", "backends", "frameworks", "all"]
+provides-extras = ["mlflow", "clearml", "wandb", "aim", "pytorch", "lightning", "tensorboard", "backends", "frameworks", "all"]
 
 [package.metadata.requires-dev]
 dev = [
