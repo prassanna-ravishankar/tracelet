@@ -25,6 +25,7 @@ nav:
       - PyTorch Lightning: integrations/lightning.md
       - TensorBoard: integrations/tensorboard.md
   - Examples:
+      - Overview: examples.md
       - Basic Usage: examples/basic.md
       - Multi-Backend Comparison: examples/multi-backend.md
       - Notebooks: examples/notebooks.md

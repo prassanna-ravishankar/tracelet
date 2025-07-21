@@ -102,10 +102,10 @@ Typical overhead per logged metric:
 
 Quick setup links:
 
-- [MLflow Setup →](mlflow.md#setup)
-- [ClearML Setup →](clearml.md#setup)
-- [W&B Setup →](wandb.md#setup)
-- [AIM Setup →](aim.md#setup)
+- [MLflow Installation →](mlflow.md#installation)
+- [ClearML Setup →](clearml.md#setup-and-authentication)
+- [W&B Setup →](wandb.md#setup-and-authentication)
+- [AIM Installation →](aim.md#installation)
 
 ## Migration Between Backends
 
