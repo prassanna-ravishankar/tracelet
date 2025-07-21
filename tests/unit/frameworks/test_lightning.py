@@ -52,36 +52,42 @@ def test_lightning_framework_patching(mock_lightning, mock_experiment):
     framework = LightningFramework()
     framework.initialize(mock_experiment)
 
-    # Get the patched Trainer
+    # Create a dummy Lightning module to test patching
     import pytorch_lightning as pl
 
-    trainer = pl.Trainer()
+    class DummyModule(pl.LightningModule):
+        pass
 
-    # Test metric logging
-    metrics = {"train/loss": 0.5, "val/accuracy": 0.95}
-    trainer.log_metrics(metrics, step=10)
+    module = DummyModule()
+
+    # Test metric logging (without step parameter since Lightning doesn't use it directly)
+    module.log("train/loss", 0.5)
+    module.log("val/accuracy", 0.95)
 
     assert mock_experiment.log_metric.call_count == 2
-    mock_experiment.log_metric.assert_any_call("train/loss", 0.5, 10)
-    mock_experiment.log_metric.assert_any_call("val/accuracy", 0.95, 10)
+    mock_experiment.log_metric.assert_any_call("train/loss", 0.5, 0)
+    mock_experiment.log_metric.assert_any_call("val/accuracy", 0.95, 0)
 
 
 @pytest.mark.skipif(not _has_lightning, reason="PyTorch Lightning not installed")
 def test_lightning_framework_cleanup(mock_lightning, mock_experiment):
     """Test cleanup on stop"""
+    from pytorch_lightning.core.module import LightningModule
+
+    # Store original method before patching
+    original_log = LightningModule.log
+
     framework = LightningFramework()
     framework.initialize(mock_experiment)
 
-    # Store original method
-    import pytorch_lightning as pl
-
-    original_log_metrics = pl.Trainer.log_metrics
+    # Verify that the method was patched
+    assert LightningModule.log != original_log
 
     # Stop tracking
     framework.stop_tracking()
 
     # Method should be restored
-    assert pl.Trainer.log_metrics == original_log_metrics
+    assert LightningModule.log == original_log
 
 
 def test_lightning_framework_availability(mock_experiment):
@@ -99,21 +105,24 @@ def test_lightning_framework_availability(mock_experiment):
 
 @pytest.mark.skipif(not _has_lightning, reason="PyTorch Lightning not installed")
 def test_lightning_framework_epoch_handling(mock_lightning, mock_experiment):
-    """Test handling of epoch vs step in logging"""
+    """Test handling of global step in logging"""
     framework = LightningFramework()
     framework.initialize(mock_experiment)
 
     import pytorch_lightning as pl
 
-    trainer = pl.Trainer()
-    trainer.current_epoch = 5
+    class DummyModule(pl.LightningModule):
+        def __init__(self):
+            super().__init__()
+            # Create a mock trainer to avoid the complex initialization
+            from unittest.mock import MagicMock
 
-    # Test logging without step (should use epoch)
-    metrics = {"train/loss": 0.5}
-    trainer.log_metrics(metrics)
+            self.trainer = MagicMock()
+            self.trainer.global_step = 5
+
+    module = DummyModule()
+
+    # Test logging (should use global_step from trainer)
+    module.log("train/loss", 0.5)
 
     mock_experiment.log_metric.assert_called_with("train/loss", 0.5, 5)
-
-    # Test logging with step (should use step)
-    trainer.log_metrics(metrics, step=10)
-    mock_experiment.log_metric.assert_called_with("train/loss", 0.5, 10)

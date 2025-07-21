@@ -47,37 +47,44 @@ class LightningFramework(FrameworkInterface):
         """Patch Lightning's logging system to capture metrics"""
         if not self._original_log_metrics and self._lightning_available:
             try:
-                import pytorch_lightning as pl
+                from pytorch_lightning.core.module import LightningModule
             except ImportError:
                 # Lightning not available, update flag and return
                 self._lightning_available = False
                 return
 
-            # Store original method
-            self._original_log_metrics = pl.Trainer.log_metrics
+            # Store original method - patch LightningModule.log instead of Trainer.log_metrics
+            self._original_log_metrics = LightningModule.log
 
-            def wrapped_log_metrics(trainer_self, metrics: dict[str, float], step: int | None = None):
+            def wrapped_log(module_self, name: str, value, *args, **kwargs):
                 # Call original logging method
-                self._original_log_metrics(trainer_self, metrics, step)
+                result = self._original_log_metrics(module_self, name, value, *args, **kwargs)
 
-                # Get the current epoch from trainer
-                current_epoch = trainer_self.current_epoch if hasattr(trainer_self, "current_epoch") else 0
+                # Get the current step from trainer if available
+                current_step = 0
+                try:
+                    if hasattr(module_self, "trainer") and module_self.trainer:
+                        current_step = getattr(module_self.trainer, "global_step", 0)
+                except RuntimeError:
+                    # Lightning module not attached to a trainer yet
+                    current_step = 0
 
-                # Log each metric to our experiment
-                for name, value in metrics.items():
-                    # Lightning already prefixes with training/validation
-                    self.log_metric(name, value, step or current_epoch)
+                # Log to our experiment (only if value is a scalar)
+                if self._experiment and isinstance(value, (int, float)):
+                    self.log_metric(name, float(value), current_step)
+
+                return result
 
             # Apply the patch
-            pl.Trainer.log_metrics = wrapped_log_metrics
+            LightningModule.log = wrapped_log
 
     def _unpatch_lightning_logging(self):
         """Restore original Lightning logging methods"""
         if self._original_log_metrics and self._lightning_available:
             try:
-                import pytorch_lightning as pl
+                from pytorch_lightning.core.module import LightningModule
 
-                pl.Trainer.log_metrics = self._original_log_metrics
+                LightningModule.log = self._original_log_metrics
                 self._original_log_metrics = None
             except ImportError:
                 # Lightning not available, just clear the reference
