@@ -6,17 +6,37 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet)](https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet)
 [![License](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)
 
-Tracelet is an automagic PyTorch metric exporter that seamlessly integrates with popular experiment tracking tools.
+Tracelet is a lightweight, extensible ML experiment tracking library that automatically captures PyTorch metrics and seamlessly integrates with popular experiment tracking tools through a modular plugin system.
 
-## Features
+## Key Features
 
-- 🔄 Automatic capture of PyTorch metrics and TensorBoard logs
-- 🤝 Integration with multiple tracking backends (MLflow, Weights & Biases, AIM)
-- 📊 System metrics monitoring (CPU, GPU, Memory)
-- 📝 Git repository tracking
-- ⚡ Lightning integration support
-- 🔧 Environment variable tracking
-- 🎨 Matplotlib figure export support
+### 🔌 Modular Plugin System
+
+- Dynamic plugin discovery and lifecycle management
+- Easy to extend with custom backends and collectors
+- Thread-safe metric routing with configurable workers
+- Dependency resolution for complex plugin hierarchies
+
+### 🚀 Automatic Metric Capture
+
+- 🔄 PyTorch TensorBoard integration - automatically captures `writer.add_scalar()` calls
+- ⚡ PyTorch Lightning support - seamlessly tracks trainer metrics
+- 📊 System metrics monitoring (CPU, GPU, Memory, Network)
+- 📝 Automatic Git repository and environment tracking
+
+### 🎯 Production-Ready Backends
+
+- **MLflow** - Local and remote server support with full experiment tracking
+- **ClearML** - Enterprise-grade experiment management with artifact storage
+- **Weights & Biases** - Cloud-based tracking with rich visualizations
+- **AIM** - Open-source experiment tracking with powerful UI
+
+### 🛡️ Robust Architecture
+
+- Thread-safe data flow orchestration
+- Backpressure handling for high-frequency metrics
+- Configurable metric routing and filtering
+- Comprehensive error handling and logging
 
 ## Installation
 
@@ -35,7 +55,7 @@ Install specific backends and frameworks as needed:
 pip install tracelet[mlflow]     # MLflow backend
 pip install tracelet[clearml]    # ClearML backend
 pip install tracelet[wandb]      # Weights & Biases backend
-pip install tracelet[aim]        # AIM backend
+pip install tracelet[aim]        # AIM backend (Python <3.13)
 
 # Framework integrations
 pip install tracelet[pytorch]    # PyTorch + TensorBoard support
@@ -50,24 +70,86 @@ pip install tracelet[all]                   # Everything
 
 This modular approach keeps your installation lightweight and avoids unnecessary dependencies.
 
+**Supported Python versions**: 3.9, 3.10, 3.11, 3.12, 3.13
+
+**Note**: The AIM backend currently requires Python <3.13 due to dependency constraints.
+
 ## Quick Start
+
+### Basic Usage
 
 ```python
 import tracelet
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
-# Start experiment tracking
-experiment = tracelet.start_logging(
+# Start experiment tracking with your preferred backend
+tracelet.start_logging(
     exp_name="my_experiment",
     project="my_project",
-    backend="mlflow"  # or "wandb", "aim"
+    backend="mlflow"  # or "clearml", "wandb", "aim"
 )
 
-# Your PyTorch training code
-# Tracelet will automatically capture metrics from TensorBoard, Lightning, etc.
+# Use TensorBoard as usual - metrics are automatically captured
+writer = SummaryWriter()
+for epoch in range(100):
+    loss = train_one_epoch()  # Your training logic
+    writer.add_scalar('Loss/train', loss, epoch)
+    # Metrics are automatically sent to MLflow!
 
 # Stop tracking when done
 tracelet.stop_logging()
+```
+
+### PyTorch Lightning Integration
+
+```python
+import tracelet
+import pytorch_lightning as pl
+
+# Start Tracelet before training
+tracelet.start_logging("lightning_experiment", backend="clearml")
+
+# Train your model - all Lightning metrics are captured
+trainer = pl.Trainer(max_epochs=10)
+trainer.fit(model, datamodule)
+
+# Experiment data is automatically tracked!
+tracelet.stop_logging()
+```
+
+### Advanced Configuration
+
+```python
+import tracelet
+from tracelet import get_active_experiment
+
+# Start with custom configuration
+experiment = tracelet.start_logging(
+    exp_name="advanced_example",
+    project="my_project",
+    backend="mlflow",
+    config={
+        "track_system_metrics": True,      # CPU/GPU monitoring
+        "system_metrics_interval": 5.0,    # Log every 5 seconds
+        "track_git": True,                 # Git info tracking
+        "track_env": True,                 # Environment capture
+        "track_tensorboard": True,         # Auto-capture TB metrics
+    }
+)
+
+# Log custom parameters
+experiment.log_params({
+    "model": "resnet50",
+    "batch_size": 32,
+    "learning_rate": 0.001
+})
+
+# Log custom metrics programmatically
+for epoch in range(10):
+    metrics = train_epoch()
+    experiment.log_metric("accuracy", metrics["acc"], epoch)
+    experiment.log_metric("loss", metrics["loss"], epoch)
 ```
 
 ## Configuration
@@ -94,21 +176,138 @@ Key environment variables:
 - `TRACELET_TRACK_SYSTEM`: Enable system metrics tracking
 - `TRACELET_METRICS_INTERVAL`: System metrics collection interval
 
+## Plugin Development
+
+Tracelet's plugin system makes it easy to add new backends or metric collectors:
+
+```python
+from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
+
+class MyCustomBackend(BackendPlugin):
+    @classmethod
+    def get_metadata(cls) -> PluginMetadata:
+        return PluginMetadata(
+            name="my_backend",
+            version="1.0.0",
+            type=PluginType.BACKEND,
+            description="My custom experiment tracking backend"
+        )
+
+    def initialize(self, config: dict):
+        # Set up your backend connection
+        self.client = MyBackendClient(config["api_key"])
+
+    def log_metric(self, name: str, value: float, iteration: int):
+        # Send metrics to your backend
+        self.client.log(name, value, iteration)
+```
+
+Place your plugin in the `tracelet/plugins/` directory and it will be automatically discovered!
+
 ## Documentation
 
 For more detailed documentation, visit:
 
 - [Documentation](https://prassanna-ravishankar.github.io/tracelet/)
 - [GitHub Repository](https://github.com/prassanna-ravishankar/tracelet/)
+- [Examples](https://github.com/prassanna-ravishankar/tracelet/tree/main/examples)
+
+## Architecture
+
+Tracelet uses a sophisticated multi-threaded architecture:
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Framework  │────▶│ Orchestrator │────▶│   Backend   │
+│  (PyTorch)  │     │   (Router)   │     │  (MLflow)   │
+└─────────────┘     └──────────────┘     └─────────────┘
+       │                    │                     │
+       ▼                    ▼                     ▼
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Collector  │────▶│    Queue     │────▶│   Plugin    │
+│  (System)   │     │  (Threaded)  │     │  (ClearML)  │
+└─────────────┘     └──────────────┘     └─────────────┘
+```
+
+- **Metric Sources**: Frameworks and collectors that generate metrics
+- **Orchestrator**: Routes metrics to appropriate backends based on rules
+- **Backends**: Plugins that handle experiment tracking and storage
+
+## Performance
+
+Tracelet is designed for minimal overhead:
+
+- Non-blocking metric collection using thread-safe queues
+- Configurable worker threads for parallel processing
+- Automatic backpressure handling to prevent memory issues
+- Efficient metric batching for reduced network calls
+
+## Troubleshooting
+
+### Common Issues
+
+**Import errors for backends**: Make sure you've installed the appropriate extras:
+
+```bash
+# If you see: ImportError: MLflow is not installed
+pip install tracelet[mlflow]
+```
+
+**ClearML offline mode**: For testing or CI environments without ClearML credentials:
+
+```python
+import os
+os.environ["CLEARML_WEB_HOST"] = ""
+os.environ["CLEARML_API_HOST"] = ""
+os.environ["CLEARML_FILES_HOST"] = ""
+```
+
+**High memory usage**: Adjust the orchestrator settings:
+
+```python
+experiment = tracelet.start_logging(
+    config={
+        "orchestrator_workers": 2,      # Reduce worker threads
+        "max_queue_size": 1000,        # Limit queue size
+    }
+)
+```
+
+## Roadmap
+
+- [ ] AWS SageMaker integration
+- [ ] Prometheus metrics export
+- [ ] Real-time metric streaming
+- [ ] Web UI for local experiments
+- [ ] Distributed training support
 
 ## Contributing
 
-Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/prassanna-ravishankar/tracelet.git
+cd tracelet
+
+# Install with development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run linting
+make check
+```
 
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
----
+## Acknowledgments
 
-Repository initiated with [fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
+- Built with the excellent [uv](https://github.com/astral-sh/uv) package manager
+- Repository initiated with [fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv)
+- Thanks to all contributors and the open-source community!
