@@ -30,8 +30,9 @@ nav:
       - Notebooks: examples/notebooks.md
   - API Reference:
       - Overview: api/index.md
+      - Core API: api/core.md
       - Main Interface: api/interface.md
-      - Core:
+      - Core Components:
           - Experiment: api/core/experiment.md
           - Plugin System: api/core/plugins.md
       - Settings: api/settings.md

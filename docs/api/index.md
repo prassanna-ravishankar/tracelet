@@ -12,15 +12,15 @@ Complete API documentation for Tracelet's public interfaces.
 
 ### Backends
 
-- [MLflow](backends/mlflow.md) - MLflow integration
-- [ClearML](backends/clearml.md) - ClearML integration
-- [Weights & Biases](backends/wandb.md) - W&B integration
-- [AIM](backends/aim.md) - AIM integration
+- [MLflow](../backends/mlflow.md) - MLflow integration
+- [ClearML](../backends/clearml.md) - ClearML integration
+- [Weights & Biases](../backends/wandb.md) - W&B integration
+- [AIM](../backends/aim.md) - AIM integration
 
 ### Frameworks
 
-- [PyTorch](frameworks/pytorch.md) - PyTorch and TensorBoard integration
-- [Lightning](frameworks/lightning.md) - PyTorch Lightning integration
+- [PyTorch](../integrations/pytorch.md) - PyTorch and TensorBoard integration
+- [Lightning](../integrations/lightning.md) - PyTorch Lightning integration
 
 ### Data Collection
 
@@ -30,7 +30,7 @@ Complete API documentation for Tracelet's public interfaces.
 ### Plugin System
 
 - [Core Plugins](core/plugins.md) - Plugin architecture and interfaces
-- [Orchestrator](core/orchestrator.md) - Data flow management
+- [Data Flow Management](core.md) - Orchestrator and data flow
 
 ## Usage Examples
 
