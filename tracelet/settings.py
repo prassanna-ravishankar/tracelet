@@ -10,7 +10,7 @@ class TraceletSettings(BaseSettings):
     # Core settings
     project: str = Field(default="default")
     experiment_name: Optional[str] = Field(default=None)
-    backend: Literal["mlflow", "wandb", "aim"] = Field(default="mlflow")
+    backend: Literal["mlflow", "wandb", "aim", "clearml"] = Field(default="mlflow")
 
     # Backend credentials
     api_key: Optional[str] = Field(default=None)
