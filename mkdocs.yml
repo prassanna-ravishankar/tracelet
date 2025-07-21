@@ -1,7 +1,7 @@
-site_name: tracelet
+site_name: Tracelet
 repo_url: https://github.com/prassanna-ravishankar/tracelet
 site_url: https://prassanna-ravishankar.github.io/tracelet
-site_description: Tracelet is an automagic pytorch metric exporter
+site_description: Intelligent experiment tracking for PyTorch and PyTorch Lightning - automagic metric capture and multi-backend logging
 site_author: Prassanna Ravishankar
 edit_uri: edit/main/docs/
 repo_name: prassanna-ravishankar/tracelet
@@ -9,45 +9,144 @@ copyright: Maintained by <a href="https://prassanna-ravishankar.com">prassanna-r
 
 nav:
   - Home: index.md
-  - Modules: modules.md
-  - Examples: examples.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quick-start.md
+      - Configuration: configuration.md
+  - Backends:
+      - Overview: backends/index.md
+      - MLflow: backends/mlflow.md
+      - ClearML: backends/clearml.md
+      - Weights & Biases: backends/wandb.md
+      - AIM: backends/aim.md
+      - Multi-Backend: backends/multi-backend.md
+  - Integrations:
+      - PyTorch: integrations/pytorch.md
+      - PyTorch Lightning: integrations/lightning.md
+      - TensorBoard: integrations/tensorboard.md
+  - Examples:
+      - Basic Usage: examples/basic.md
+      - Multi-Backend Comparison: examples/multi-backend.md
+      - Notebooks: examples/notebooks.md
+  - API Reference:
+      - Core: api/core.md
+      - Backends: api/backends.md
+      - Plugins: api/plugins.md
+  - Guides:
+      - Best Practices: guides/best-practices.md
+      - Troubleshooting: guides/troubleshooting.md
+      - Migration Guide: guides/migration.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Architecture: development/architecture.md
 plugins:
-  - search
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - mkdocstrings:
+      default_handler: python
       handlers:
         python:
           paths: [tracelet]
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_bases: true
+            merge_init_into_class: true
+
 theme:
   name: material
-  feature:
-    tabs: true
+  logo: tracelet.webp
+  favicon: tracelet.webp
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - header.autohide
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: white
+      primary: deep orange
       accent: deep orange
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: black
-      accent: deep orange
+      primary: deep orange
+      accent: amber
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
   icon:
     repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
 
 extra:
+  version:
+    provider: mike
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/prassanna-ravishankar/tracelet
+      name: GitHub
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/tracelet
+      name: PyPI
+    - icon: material/email
+      link: mailto:me@prassanna.io
+      name: Contact
+  analytics:
+    provider: google
+    property: G-PLACEHOLDER
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
 
 markdown_extensions:
-  - toc:
-      permalink: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+  - pymdownx.emoji
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
+  - attr_list
+  - md_in_html
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      title: On this page

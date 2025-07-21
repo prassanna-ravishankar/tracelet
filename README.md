@@ -3,10 +3,14 @@
 [![Release](https://img.shields.io/github/v/release/prassanna-ravishankar/tracelet)](https://img.shields.io/github/v/release/prassanna-ravishankar/tracelet)
 [![Build status](https://img.shields.io/github/actions/workflow/status/prassanna-ravishankar/tracelet/main.yml?branch=main)](https://github.com/prassanna-ravishankar/tracelet/actions/workflows/main.yml?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/prassanna-ravishankar/tracelet/branch/main/graph/badge.svg)](https://codecov.io/gh/prassanna-ravishankar/tracelet)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet)](https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet)](https://github.com/prassanna-ravishankar/tracelet/commit-activity/m/prassanna-ravishankar/tracelet)
 [![License](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)
 
-Tracelet is a lightweight, extensible ML experiment tracking library that automatically captures PyTorch metrics and seamlessly integrates with popular experiment tracking tools through a modular plugin system.
+<p align="center">
+  <img src="docs/tracelet.webp" alt="Tracelet Logo" width="400">
+</p>
+
+Tracelet is an intelligent experiment tracking library that automatically captures PyTorch and PyTorch Lightning metrics, seamlessly integrating with popular experiment tracking platforms through a modular plugin system.
 
 ## Key Features
 
@@ -21,7 +25,7 @@ Tracelet is a lightweight, extensible ML experiment tracking library that automa
 
 - 🔄 PyTorch TensorBoard integration - automatically captures `writer.add_scalar()` calls
 - ⚡ PyTorch Lightning support - seamlessly tracks trainer metrics
-- 📊 System metrics monitoring (CPU, GPU, Memory, Network)
+- 📊 System metrics monitoring (CPU, Memory, GPU support planned)
 - 📝 Automatic Git repository and environment tracking
 
 ### 🎯 Production-Ready Backends
@@ -40,35 +44,32 @@ Tracelet is a lightweight, extensible ML experiment tracking library that automa
 
 ## Installation
 
-Install the base package:
+Install the base package (includes PyTorch, TensorBoard, and W&B):
 
 ```bash
 pip install tracelet
 ```
 
-### Optional Dependencies
+### Additional Backend Dependencies
 
-Install specific backends and frameworks as needed:
+Install specific backends as needed:
 
 ```bash
-# Backend integrations
+# Additional backend integrations
 pip install tracelet[mlflow]     # MLflow backend
 pip install tracelet[clearml]    # ClearML backend
-pip install tracelet[wandb]      # Weights & Biases backend
 pip install tracelet[aim]        # AIM backend (Python <3.13)
 
 # Framework integrations
-pip install tracelet[pytorch]    # PyTorch + TensorBoard support
 pip install tracelet[lightning]  # PyTorch Lightning support
 
 # Install multiple extras
-pip install tracelet[mlflow,pytorch]        # MLflow + PyTorch
+pip install tracelet[mlflow,clearml]        # Multiple backends
 pip install tracelet[backends]              # All backends
-pip install tracelet[frameworks]            # All frameworks
 pip install tracelet[all]                   # Everything
 ```
 
-This modular approach keeps your installation lightweight and avoids unnecessary dependencies.
+**Base dependencies included**: PyTorch, TorchVision, TensorBoard, Weights & Biases, GitPython, Psutil
 
 **Supported Python versions**: 3.9, 3.10, 3.11, 3.12, 3.13
 
@@ -130,11 +131,12 @@ experiment = tracelet.start_logging(
     project="my_project",
     backend="mlflow",
     config={
-        "track_system_metrics": True,      # CPU/GPU monitoring
-        "system_metrics_interval": 5.0,    # Log every 5 seconds
+        "track_system": True,              # System monitoring
+        "metrics_interval": 5.0,           # Log every 5 seconds
         "track_git": True,                 # Git info tracking
         "track_env": True,                 # Environment capture
         "track_tensorboard": True,         # Auto-capture TB metrics
+        "track_lightning": True,           # PyTorch Lightning support
     }
 )
 
@@ -160,21 +162,29 @@ Tracelet can be configured via environment variables or through the settings int
 from tracelet.settings import TraceletSettings
 
 settings = TraceletSettings(
-    project_name="my_project",
-    backend="mlflow",
-    track_system_metrics=True,
-    system_metrics_interval=10.0
+    project="my_project",               # or project_name (alias)
+    backend=["mlflow"],                 # List of backends
+    track_system=True,                  # System metrics tracking
+    metrics_interval=10.0,              # Collection interval
+    track_tensorboard=True,             # TensorBoard integration
+    track_lightning=True,               # PyTorch Lightning support
+    track_git=True,                     # Git repository info
+    track_env=True                      # Environment capture
 )
 ```
 
 Key environment variables:
 
 - `TRACELET_PROJECT`: Project name
-- `TRACELET_BACKEND`: Tracking backend ("mlflow", "wandb", "aim")
+- `TRACELET_BACKEND`: Comma-separated backends ("mlflow,wandb")
 - `TRACELET_BACKEND_URL`: Backend server URL
 - `TRACELET_API_KEY`: API key for backend service
 - `TRACELET_TRACK_SYSTEM`: Enable system metrics tracking
 - `TRACELET_METRICS_INTERVAL`: System metrics collection interval
+- `TRACELET_TRACK_TENSORBOARD`: Enable TensorBoard integration
+- `TRACELET_TRACK_LIGHTNING`: Enable PyTorch Lightning support
+- `TRACELET_TRACK_GIT`: Enable Git repository tracking
+- `TRACELET_TRACK_ENV`: Enable environment capture
 
 ## Plugin Development
 
@@ -202,7 +212,11 @@ class MyCustomBackend(BackendPlugin):
         self.client.log(name, value, iteration)
 ```
 
-Place your plugin in the `tracelet/plugins/` directory and it will be automatically discovered!
+Plugins are automatically discovered from:
+
+- Built-in: `tracelet/plugins/` directory
+- User: `~/.tracelet/plugins/` directory
+- Custom: Set `TRACELET_PLUGIN_PATH` environment variable
 
 ## Documentation
 
@@ -262,13 +276,14 @@ os.environ["CLEARML_API_HOST"] = ""
 os.environ["CLEARML_FILES_HOST"] = ""
 ```
 
-**High memory usage**: Adjust the orchestrator settings:
+**High memory usage**: Disable unnecessary tracking features:
 
 ```python
 experiment = tracelet.start_logging(
     config={
-        "orchestrator_workers": 2,      # Reduce worker threads
-        "max_queue_size": 1000,        # Limit queue size
+        "track_system": False,          # Disable system metrics
+        "track_git": False,             # Disable git tracking
+        "metrics_interval": 30.0,       # Reduce collection frequency
     }
 )
 ```
