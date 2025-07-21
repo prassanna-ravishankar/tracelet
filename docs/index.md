@@ -45,6 +45,17 @@ Tracelet is a powerful Python library that automatically captures and logs your 
     conda install -c conda-forge tracelet
     `
 
+## Demo
+
+<div align="center">
+  <video width="100%" controls style="max-width: 800px; margin: 20px 0;">
+    <source src="video.mp4" type="video/mp4">
+    Your browser does not support the video tag. <a href="video.mp4">Download the demo video</a>
+  </video>
+</div>
+
+See Tracelet in action! The video above shows how easy it is to get started with automatic experiment tracking.
+
 ### Basic Usage
 
 ```python

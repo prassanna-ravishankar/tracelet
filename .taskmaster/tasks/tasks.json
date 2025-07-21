@@ -485,7 +485,7 @@
                         "description": "Develop Jupyter notebooks and Google Colab-compatible tutorials covering common use cases and best practices",
                         "dependencies": ["16.2", "16.3"],
                         "details": "Create beginner-friendly tutorial notebooks for each backend integration showing basic experiment tracking, metric logging, and artifact management. Develop advanced notebooks demonstrating distributed training scenarios, hyperparameter tuning integration, and model versioning. Include notebooks showing migration between different backends. Create interactive examples that can run in Google Colab with proper dependency installation cells. Develop notebooks showcasing visualization features and comparison across backends. Include performance optimization examples and logging strategies.",
-                        "status": "pending",
+                        "status": "in-progress",
                         "testStrategy": "Execute all notebooks end-to-end in clean environments, test Colab compatibility with share links, validate outputs and visualizations render correctly, ensure examples work with latest package versions"
                     },
                     {
@@ -505,7 +505,7 @@
             "created": "2024-12-19T10:00:00Z",
             "lastModified": "2024-12-19T10:00:00Z",
             "description": "Tracelet - Intelligent experiment tracking for PyTorch and PyTorch Lightning",
-            "updated": "2025-07-21T22:21:34.196Z"
+            "updated": "2025-07-21T22:49:46.969Z"
         }
     }
 }

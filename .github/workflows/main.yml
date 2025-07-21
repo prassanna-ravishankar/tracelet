@@ -81,5 +81,4 @@ jobs:
         run: uv sync --frozen
 
       - name: Check if documentation can be built
-        run: uv run mkdocs build -s || echo "Documentation build failed - this is expected while docs are being updated"
-        continue-on-error: true
+        run: uv run mkdocs build -s

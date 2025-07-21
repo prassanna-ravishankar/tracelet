@@ -75,6 +75,17 @@ pip install tracelet[all]                   # Everything
 
 **Note**: The AIM backend currently requires Python <3.13 due to dependency constraints.
 
+## Demo
+
+<p align="center">
+  <video width="800" controls>
+    <source src="docs/video.mp4" type="video/mp4">
+    Your browser does not support the video tag. <a href="docs/video.mp4">Download the demo video</a>
+  </video>
+</p>
+
+See Tracelet in action! The video above shows how easy it is to get started with automatic experiment tracking.
+
 ## Quick Start
 
 ### Basic Usage
