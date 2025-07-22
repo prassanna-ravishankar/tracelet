@@ -75,8 +75,8 @@ def automagic_pytorch_training():
         print(f"\n📊 Epoch {epoch + 1}/{epochs}")
 
         # Simulate training phase
-        epoch_train_loss = 2.3 - (epoch * 0.15) + random.uniform(-0.1, 0.1)
-        epoch_train_acc = 0.1 + (epoch * 0.08) + random.uniform(-0.02, 0.02)
+        epoch_train_loss = 2.3 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
+        epoch_train_acc = 0.1 + (epoch * 0.08) + random.uniform(-0.02, 0.02)  # noqa: S311
 
         # In real PyTorch with automagic, these would be captured automatically:
         # - Loss via criterion hooks
@@ -91,8 +91,8 @@ def automagic_pytorch_training():
         experiment.log_metric("train_accuracy", epoch_train_acc, iteration=epoch)
 
         # Simulate validation
-        epoch_val_loss = epoch_train_loss + random.uniform(0.05, 0.15)
-        epoch_val_acc = epoch_train_acc - random.uniform(0.01, 0.05)
+        epoch_val_loss = epoch_train_loss + random.uniform(0.05, 0.15)  # noqa: S311
+        epoch_val_acc = epoch_train_acc - random.uniform(0.01, 0.05)  # noqa: S311
 
         experiment.log_metric("val_loss", epoch_val_loss, iteration=epoch)
         experiment.log_metric("val_accuracy", epoch_val_acc, iteration=epoch)

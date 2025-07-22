@@ -49,8 +49,8 @@ def run_manual_experiment():
     print("🚀 Training with manual metric logging...")
     for epoch in range(epochs):
         # Simulate training
-        loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)
-        accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)
+        loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
+        accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)  # noqa: S311
 
         # MANUAL: Must log every metric explicitly
         experiment.log_metric("loss", loss, iteration=epoch)
@@ -103,8 +103,8 @@ def run_automagic_experiment():
     print("🚀 Training with automagic tracking...")
     for epoch in range(epochs):
         # Simulate the SAME training
-        loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)
-        accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)
+        loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
+        accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)  # noqa: S311
 
         # AUTOMAGIC: Minimal logging (could be even more automatic with hooks)
         experiment.log_metric("loss", loss, iteration=epoch)

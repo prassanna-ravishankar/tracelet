@@ -45,14 +45,14 @@ class FrameworkHook:
 
     def remove_hooks(self) -> None:
         """Remove framework-specific hooks."""
-        for module_name, func_name in self._patched_functions.keys():
+        for module_name, func_name in self._patched_functions:
             try:
                 module = importlib.import_module(module_name)
                 original = self._original_functions.get((module_name, func_name))
                 if original:
                     setattr(module, func_name, original)
             except Exception as e:
-                warnings.warn(f"Failed to restore {module_name}.{func_name}: {e}")
+                warnings.warn(f"Failed to restore {module_name}.{func_name}: {e}", stacklevel=2)
 
         self._patched_functions.clear()
         self._original_functions.clear()
@@ -69,7 +69,7 @@ class FrameworkHook:
                 setattr(module, func_name, wrapped)
                 self._patched_functions[(module_name, func_name)] = wrapped
         except Exception as e:
-            warnings.warn(f"Failed to patch {module_name}.{func_name}: {e}")
+            warnings.warn(f"Failed to patch {module_name}.{func_name}: {e}", stacklevel=2)
 
 
 class PyTorchHook(FrameworkHook):
@@ -86,7 +86,7 @@ class PyTorchHook(FrameworkHook):
         # Patch loss computation
         self._patch_loss_functions()
 
-    def _patch_optimizer_step(self) -> None:
+    def _patch_optimizer_step(self) -> None:  # noqa: C901
         """Patch optimizer.step() to capture learning rates and gradients."""
 
         def optimizer_step_wrapper(original_step):
@@ -114,7 +114,7 @@ class PyTorchHook(FrameworkHook):
                                     total_norm += param_norm.item() ** 2
                         total_norm = total_norm ** (1.0 / 2)
                         experiment.log_metric("gradient_norm", total_norm)
-                    except Exception:
+                    except Exception:  # noqa: S110
                         pass  # Don't break training if gradient logging fails
 
                 return result
@@ -133,7 +133,7 @@ class PyTorchHook(FrameworkHook):
             try:
                 module_name, class_name = opt_name.rsplit(".", 1)
                 self._patch_function(module_name, class_name + ".step", optimizer_step_wrapper)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass  # Ignore if optimizer not available
 
     def _patch_model_save(self) -> None:
@@ -171,7 +171,7 @@ class PyTorchHook(FrameworkHook):
                         try:
                             loss_value = result.item()
                             experiment.log_metric(f"{self.__class__.__name__.lower()}_loss", loss_value)
-                        except Exception:
+                        except Exception:  # noqa: S110
                             pass  # Ignore if loss can't be logged
 
                     return result
@@ -190,7 +190,7 @@ class PyTorchHook(FrameworkHook):
             try:
                 module_name, class_name = loss_name.rsplit(".", 1)
                 self._patch_function(module_name, class_name, loss_wrapper)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass  # Ignore if loss function not available
 
     def _log_gradient_norms(self, experiment: Experiment, optimizer) -> None:
@@ -213,7 +213,7 @@ class SklearnHook(FrameworkHook):
         self._patch_model_fit()
         self._patch_model_predict()
 
-    def _patch_model_fit(self) -> None:
+    def _patch_model_fit(self) -> None:  # noqa: C901
         """Patch fit methods to capture training information."""
 
         def fit_wrapper(original_fit):
@@ -230,9 +230,9 @@ class SklearnHook(FrameworkHook):
                     if hasattr(self, "get_params"):
                         params = self.get_params()
                         for param_name, param_value in params.items():
-                            try:
+                            try:  # noqa: SIM105
                                 experiment.log_hyperparameter(f"sklearn_{param_name}", param_value)
-                            except Exception:
+                            except Exception:  # noqa: S110
                                 pass  # Ignore serialization errors for complex objects
 
                 # Call original fit
@@ -261,7 +261,7 @@ class SklearnHook(FrameworkHook):
             try:
                 module_name, class_name = estimator_name.rsplit(".", 1)
                 self._patch_function(module_name, f"{class_name}.fit", fit_wrapper)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass  # Ignore if module not available
 
     def _patch_model_predict(self) -> None:

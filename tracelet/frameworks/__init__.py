@@ -3,4 +3,4 @@
 from .lightning import LightningFramework
 from .pytorch import PyTorchFramework
 
-__all__ = ["PyTorchFramework", "LightningFramework"]
+__all__ = ["LightningFramework", "PyTorchFramework"]

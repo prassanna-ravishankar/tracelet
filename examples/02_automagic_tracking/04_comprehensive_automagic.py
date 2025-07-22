@@ -127,7 +127,7 @@ def comprehensive_automagic_demo():
     print("🎭 Simulating automatic framework capture...")
 
     # These would be captured automatically by framework hooks:
-    model_info = {
+    model_info = {  # noqa: F841
         "model_type": "transformer",
         "total_parameters": 175_000_000,  # 175M parameters
         "trainable_parameters": 175_000_000,
@@ -135,7 +135,7 @@ def comprehensive_automagic_demo():
         "memory_usage_mb": 2048,
     }
 
-    dataset_info = {
+    dataset_info = {  # noqa: F841
         "dataset_type": "text_classification",
         "train_samples": 100_000,
         "val_samples": 10_000,
@@ -164,22 +164,22 @@ def comprehensive_automagic_demo():
         print(f"📊 Epoch {epoch + 1}/{min(epochs, 8)}")
 
         # Simulate training metrics (would be auto-captured via hooks)
-        train_loss = 2.5 * (0.85**epoch) + random.uniform(-0.1, 0.1)
-        train_acc = 0.2 + (0.7 * (1 - 0.85**epoch)) + random.uniform(-0.02, 0.02)
-        val_loss = train_loss + random.uniform(0.05, 0.25)
-        val_acc = train_acc - random.uniform(0.01, 0.05)
+        train_loss = 2.5 * (0.85**epoch) + random.uniform(-0.1, 0.1)  # noqa: S311
+        train_acc = 0.2 + (0.7 * (1 - 0.85**epoch)) + random.uniform(-0.02, 0.02)  # noqa: S311
+        val_loss = train_loss + random.uniform(0.05, 0.25)  # noqa: S311
+        val_acc = train_acc - random.uniform(0.01, 0.05)  # noqa: S311
 
         # Learning rate scheduling (would be auto-captured)
         current_lr = learning_rate * (0.95**epoch)
 
         # System metrics (would be auto-captured)
-        gpu_memory_gb = random.uniform(6.2, 7.8)
-        cpu_usage_pct = random.uniform(45, 85)
-        epoch_time_minutes = random.uniform(12, 18)
+        gpu_memory_gb = random.uniform(6.2, 7.8)  # noqa: S311
+        cpu_usage_pct = random.uniform(45, 85)  # noqa: S311
+        epoch_time_minutes = random.uniform(12, 18)  # noqa: S311
 
         # Gradient information (would be auto-captured)
-        grad_norm = random.uniform(0.8, 2.5)
-        grad_std = random.uniform(0.1, 0.4)
+        grad_norm = random.uniform(0.8, 2.5)  # noqa: S311
+        grad_std = random.uniform(0.1, 0.4)  # noqa: S311
 
         # In real automagic mode, these would all be captured automatically:
         metrics = {

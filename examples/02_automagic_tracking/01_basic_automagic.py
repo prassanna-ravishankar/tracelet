@@ -61,8 +61,8 @@ def automagic_experiment():
     best_accuracy = 0
     for epoch in range(epochs):
         # Simulate training (same as manual)
-        epoch_loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)
-        epoch_accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)
+        epoch_loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
+        epoch_accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)  # noqa: S311
 
         # OPTIONAL: You can still log manually if needed for specific metrics
         # But basic training metrics could be captured automatically via framework hooks

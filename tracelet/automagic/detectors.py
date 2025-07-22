@@ -67,7 +67,7 @@ class HyperparameterDetector:
 
         # Get local and global variables from frame
         local_vars = frame.f_locals
-        global_vars = frame.f_globals
+        # global_vars = frame.f_globals  # Not used currently
 
         # Extract function arguments
         if self.config.detect_function_args:
@@ -160,7 +160,7 @@ class HyperparameterDetector:
                         value = getattr(obj, attr_name)
                         if self._is_likely_hyperparameter(attr_name, value):
                             hyperparams[f"self.{attr_name}"] = self._serialize_value(value)
-                    except Exception:
+                    except Exception:  # noqa: S112
                         continue  # Skip attributes that can't be accessed
 
         return hyperparams
@@ -273,10 +273,7 @@ class HyperparameterDetector:
         if isinstance(value, bool):
             return True
 
-        if isinstance(value, str) and len(value) < 50:  # Short string configs
-            return True
-
-        return False
+        return isinstance(value, str) and len(value) < 50  # Short string configs
 
     def _serialize_value(self, value: Any) -> Any:
         """Serialize a value for logging."""
@@ -467,7 +464,7 @@ class DatasetDetector:
             try:
                 sample = dataset[0]
                 info["sample_structure"] = self._describe_sample_structure(sample)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass  # Ignore if sample can't be accessed
 
         return info

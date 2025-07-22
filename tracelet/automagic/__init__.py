@@ -15,12 +15,12 @@ from .hooks import FrameworkHookRegistry
 from .monitors import ResourceMonitor, TrainingMonitor
 
 __all__ = [
-    "AutomagicInstrumentor",
     "AutomagicConfig",
-    "HyperparameterDetector",
-    "ModelDetector",
+    "AutomagicInstrumentor",
     "DatasetDetector",
     "FrameworkHookRegistry",
-    "TrainingMonitor",
+    "HyperparameterDetector",
+    "ModelDetector",
     "ResourceMonitor",
+    "TrainingMonitor",
 ]

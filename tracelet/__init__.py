@@ -22,7 +22,7 @@ except ImportError:
 
 # Check for automagic support
 try:
-    from .automagic.core import automagic, capture_hyperparams
+    from .automagic.core import automagic, capture_hyperparams  # noqa: F401
 
     _has_automagic = True
 except ImportError:
