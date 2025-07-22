@@ -197,19 +197,26 @@ class AutomagicInstrumentor:
                 for name, value in hyperparams.items():
                     experiment.log_hyperparameter(name, value)
 
-                print(f"🔮 Automagically captured hyperparameters: {list(hyperparams.keys())}")
+                if hyperparams:
+                    print(f"🔮 Automagically captured hyperparameters: {list(hyperparams.keys())}")
         finally:
             del frame
 
     def _find_user_frame(self, start_frame):
         """Find the first frame that's not from tracelet internals."""
         frame = start_frame
-        tracelet_paths = ["tracelet/", "tracelet\\"]  # Handle both Unix and Windows paths
 
         while frame:
             filename = frame.f_code.co_filename
-            # Skip frames that are from tracelet itself
-            if not any(path in filename for path in tracelet_paths):
+
+            # Skip frames that are from tracelet package itself
+            # Check if this is within the tracelet package directory
+            is_tracelet_internal = (
+                "/tracelet/tracelet/" in filename  # Unix path to tracelet package
+                or "\\tracelet\\tracelet\\" in filename  # Windows path to tracelet package
+            )
+
+            if not is_tracelet_internal:
                 return frame
             frame = frame.f_back
 
