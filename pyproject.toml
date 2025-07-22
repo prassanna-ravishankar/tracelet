@@ -55,9 +55,9 @@ all = ["mlflow>=3.1.1", "clearml>=1.15.0", "wandb>=0.16.0", "aim>=3.17.0; python
 
 
 [project.urls]
-Homepage = "https://prassanna-ravishankar.github.io/tracelet/"
+Homepage = "https://prassanna.io/tracelet/"
 Repository = "https://github.com/prassanna-ravishankar/tracelet"
-Documentation = "https://prassanna-ravishankar.github.io/tracelet/"
+Documentation = "https://prassanna.io/tracelet/"
 Changelog = "https://github.com/prassanna-ravishankar/tracelet/releases"
 
 [tool.uv]
