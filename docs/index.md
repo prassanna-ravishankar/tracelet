@@ -1,20 +1,32 @@
 # Tracelet
 
-<div align="center">
+<p align="center">
   <img src="tracelet.webp" alt="Tracelet Logo" width="200" height="200" style="margin: 20px 0;">
+</p>
 
-**Intelligent experiment tracking for PyTorch and PyTorch Lightning**
+<p align="center">
+  <b>Intelligent experiment tracking for PyTorch and PyTorch Lightning</b><br>
+  <i>Automagic metric capture and multi-backend logging</i>
+</p>
 
-_Automagic metric capture and multi-backend logging_
-
-[![Release](https://img.shields.io/github/v/release/prassanna-ravishankar/tracelet?style=flat-square)](https://github.com/prassanna-ravishankar/tracelet/releases)
-[![Build status](https://img.shields.io/github/actions/workflow/status/prassanna-ravishankar/tracelet/main.yml?branch=main&style=flat-square)](https://github.com/prassanna-ravishankar/tracelet/actions/workflows/main.yml?query=branch%3Amain)
-[![Python](https://img.shields.io/pypi/pyversions/tracelet?style=flat-square)](https://pypi.org/project/tracelet)
-[![PyPI](https://img.shields.io/pypi/v/tracelet?style=flat-square)](https://pypi.org/project/tracelet)
-[![License](https://img.shields.io/github/license/prassanna-ravishankar/tracelet?style=flat-square)](https://github.com/prassanna-ravishankar/tracelet/blob/main/LICENSE)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet?style=flat-square)](https://github.com/prassanna-ravishankar/tracelet/graphs/commit-activity)
-
-</div>
+<p align="center">
+  <a href="https://github.com/prassanna-ravishankar/tracelet/releases">
+    <img src="https://img.shields.io/github/v/release/prassanna-ravishankar/tracelet?style=flat-square" alt="Release">
+  </a>
+  <a href="https://github.com/prassanna-ravishankar/tracelet/actions/workflows/main.yml?query=branch%3Amain">
+    <img src="https://img.shields.io/github/actions/workflow/status/prassanna-ravishankar/tracelet/main.yml?branch=main&style=flat-square" alt="Build status">
+  </a>
+  <a href="https://pypi.org/project/tracelet">
+    <img src="https://img.shields.io/pypi/pyversions/tracelet?style=flat-square" alt="Python">
+    <img src="https://img.shields.io/pypi/v/tracelet?style=flat-square" alt="PyPI">
+  </a>
+  <a href="https://github.com/prassanna-ravishankar/tracelet/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/prassanna-ravishankar/tracelet?style=flat-square" alt="License">
+  </a>
+  <a href="https://github.com/prassanna-ravishankar/tracelet/graphs/commit-activity">
+    <img src="https://img.shields.io/github/commit-activity/m/prassanna-ravishankar/tracelet?style=flat-square" alt="Commit activity">
+  </a>
+</p>
 
 ## What is Tracelet?
 
@@ -30,20 +42,22 @@ Tracelet is a powerful Python library that automatically captures and logs your 
 
 ### Installation
 
+<!-- prettier-ignore-start -->
 === "pip"
-`bash
+    ```
     pip install tracelet
-    `
+    ```
 
 === "uv"
-`bash
+    ```
     uv add tracelet
-    `
+    ```
 
 === "conda"
-`bash
+    ```
     conda install -c conda-forge tracelet
-    `
+    ```
+<!-- prettier-ignore-end -->
 
 ## Demo
 
