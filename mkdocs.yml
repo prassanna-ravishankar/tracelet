@@ -1,6 +1,6 @@
 site_name: Tracelet
 repo_url: https://github.com/prassanna-ravishankar/tracelet
-site_url: https://prassanna-ravishankar.github.io/tracelet
+site_url: https://prassanna.io/tracelet
 site_description: Intelligent experiment tracking for PyTorch and PyTorch Lightning - automagic metric capture and multi-backend logging
 site_author: Prassanna Ravishankar
 edit_uri: edit/main/docs/
