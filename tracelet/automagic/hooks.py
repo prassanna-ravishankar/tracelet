@@ -206,13 +206,19 @@ class PyTorchHook(FrameworkHook):
                     if experiment and hasattr(result, "item"):
                         try:
                             loss_value = result.item()
-                            experiment.log_metric(f"{loss_self.__class__.__name__.lower()}_loss", loss_value)
+                            # Use the original class name for better metric naming
+                            original_class_name = original_loss_class.__name__.lower()
+                            experiment.log_metric(f"{original_class_name}_loss", loss_value)
                         except (RuntimeError, ValueError) as e:
                             # RuntimeError: tensor might not be scalar
                             # ValueError: conversion issues
                             warnings.warn(f"Could not log loss value: {e}", stacklevel=2)
 
                     return result
+
+            # Preserve the original class name and qualname for better debugging
+            WrappedLoss.__name__ = original_loss_class.__name__
+            WrappedLoss.__qualname__ = original_loss_class.__qualname__
 
             return WrappedLoss
 

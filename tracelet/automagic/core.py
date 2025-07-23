@@ -276,10 +276,25 @@ class AutomagicInstrumentor:
                 try:
                     is_tracelet_internal = os.path.abspath(filename).startswith(os.path.abspath(tracelet_dir))
                 except (ValueError, OSError):
-                    # Strategy 3: String-based fallback for edge cases
-                    # Handles unusual path formats, network paths, or when path operations fail
-                    # Uses both forward and backward slashes for cross-platform compatibility
-                    is_tracelet_internal = "/tracelet/" in filename or "\\tracelet\\" in filename
+                    # Strategy 3: More robust path-based fallback
+                    # Try to resolve paths and compare, falling back to package name check
+                    try:
+                        # Get the actual tracelet package name from the module
+                        import tracelet
+
+                        package_name = tracelet.__name__
+                        # Check if the filename contains the tracelet package in its module path
+                        # This is more robust than simple string matching
+                        is_tracelet_internal = f"/{package_name}/" in filename or f"\\{package_name}\\" in filename
+                    except (ImportError, AttributeError):
+                        # Final fallback: check if file is in site-packages/tracelet or similar
+                        # This avoids false positives from user project names containing "tracelet"
+                        is_tracelet_internal = (
+                            "/site-packages/tracelet/" in filename
+                            or "\\site-packages\\tracelet\\" in filename
+                            or "/dist-packages/tracelet/" in filename
+                            or "\\dist-packages\\tracelet\\" in filename
+                        )
 
             if not is_tracelet_internal:
                 return frame
