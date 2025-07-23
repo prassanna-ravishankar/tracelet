@@ -95,7 +95,48 @@ class AutomagicInstrumentor:
         with cls._lock:
             if cls._instance is None:
                 cls._instance = cls(config)
+            elif config is not None:
+                # Check if provided config differs from existing singleton's config
+                existing_config = cls._instance.config
+                if cls._configs_differ(existing_config, config):
+                    import warnings
+
+                    warnings.warn(
+                        "AutomagicInstrumentor singleton already exists with different configuration. "
+                        "The existing configuration will be used. To use a new configuration, "
+                        "call cleanup() on the existing instance first.",
+                        UserWarning,
+                        stacklevel=2,
+                    )
             return cls._instance
+
+    @classmethod
+    def _configs_differ(cls, config1: AutomagicConfig, config2: AutomagicConfig) -> bool:
+        """Check if two AutomagicConfig instances have different settings."""
+        # Compare all significant configuration fields
+        fields_to_compare = [
+            "detect_function_args",
+            "detect_class_attributes",
+            "detect_argparse",
+            "detect_config_files",
+            "track_model_architecture",
+            "track_model_checkpoints",
+            "track_model_gradients",
+            "track_dataset_info",
+            "track_data_samples",
+            "monitor_training_loop",
+            "monitor_loss_curves",
+            "monitor_learning_rate",
+            "monitor_gpu_memory",
+            "monitor_cpu_usage",
+            "track_git_info",
+            "track_file_hashes",
+            "frameworks",
+        ]
+
+        return any(
+            getattr(config1, field_name, None) != getattr(config2, field_name, None) for field_name in fields_to_compare
+        )
 
     def attach_experiment(self, experiment: Experiment) -> None:
         """Attach automagic instrumentation to an experiment."""

@@ -177,12 +177,11 @@ class Experiment(MetricSource):
 
             # Create automagic configuration
             # Use explicit None check to allow intentional empty set
-            frameworks = (
-                self.config.automagic_frameworks
-                if self.config.automagic_frameworks is not None
-                else {"pytorch", "sklearn", "xgboost"}
-            )
-            automagic_config = AutomagicConfig(frameworks=frameworks)
+            if self.config.automagic_frameworks is not None:
+                automagic_config = AutomagicConfig(frameworks=self.config.automagic_frameworks)
+            else:
+                # Use AutomagicConfig defaults when no frameworks specified
+                automagic_config = AutomagicConfig()
 
             # Initialize instrumentor and attach to this experiment
             self._automagic_instrumentor = AutomagicInstrumentor.get_instance(automagic_config)
