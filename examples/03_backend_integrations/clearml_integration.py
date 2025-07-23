@@ -21,6 +21,9 @@ import numpy as np
 
 import tracelet
 
+# Set random seed for reproducible results
+np.random.seed(42)
+
 
 def train_model():
     """Simulate a simple training loop."""

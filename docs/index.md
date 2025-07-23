@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Intelligent experiment tracking for PyTorch and PyTorch Lightning</b><br>
-  <i>Automagic metric capture and multi-backend logging</i>
+  <i>Automagic hyperparameter detection and multi-backend logging</i>
 </p>
 
 <p align="center">
@@ -32,6 +32,7 @@
 
 Tracelet is a powerful Python library that automatically captures and logs your machine learning experiments without requiring code modifications. Simply add one line to start tracking, and Tracelet will:
 
+- 🔮 **Automagic instrumentation** - Zero-config hyperparameter detection and logging
 - 🔍 **Automatically capture** TensorBoard metrics, PyTorch Lightning logs, and system metrics
 - 🔄 **Route to multiple backends** simultaneously (MLflow, ClearML, W&B, AIM)
 - 📊 **Track everything** - scalars, histograms, images, audio, text, and artifacts

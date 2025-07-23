@@ -1,7 +1,10 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from ..automagic.core import AutomagicConfig
 
 from .orchestrator import DataFlowOrchestrator, MetricData, MetricSource, MetricType, RoutingRule
 from .plugins import PluginManager, PluginState, PluginType
@@ -19,6 +22,10 @@ class ExperimentConfig:
     track_system_metrics: bool = True
     track_git: bool = True
 
+    # Automagic instrumentation settings
+    enable_automagic: bool = False
+    automagic_frameworks: Optional[set[str]] = None
+
 
 class Experiment(MetricSource):
     """Main experiment tracking class that orchestrates all tracking functionality"""
@@ -29,6 +36,8 @@ class Experiment(MetricSource):
         config: Optional[ExperimentConfig] = None,
         backend: Optional[list[str]] = None,  # Changed to list[str]
         tags: Optional[list[str]] = None,
+        automagic: bool = False,  # Enable automagic instrumentation
+        automagic_config: Optional["AutomagicConfig"] = None,  # Custom automagic configuration
     ):
         self.name = name
         self.id = str(uuid.uuid4())
@@ -39,6 +48,11 @@ class Experiment(MetricSource):
         self._active_collectors = []
         self._backends = backend if backend is not None else []  # Changed to _backends
         self._framework = None
+
+        # Automagic instrumentation
+        self._automagic_enabled = automagic or self.config.enable_automagic
+        self._automagic_config = automagic_config
+        self._automagic_instrumentor = None
 
         # Initialize data flow orchestrator
         self._orchestrator = DataFlowOrchestrator(max_queue_size=10000, num_workers=4)
@@ -80,6 +94,10 @@ class Experiment(MetricSource):
                 else:
                     print(f"Warning: Backend '{backend_name}' not found or could not be initialized.")
 
+        # Initialize automagic instrumentation if enabled
+        if self._automagic_enabled:
+            self._initialize_automagic()
+
     def start(self):
         """Start the experiment tracking"""
         # Start the orchestrator
@@ -95,7 +113,11 @@ class Experiment(MetricSource):
                 self._plugin_manager.start_plugin(collector_info.metadata.name)
 
     def stop(self):
-        """Stop the experiment tracking"""
+        """Stop the experiment tracking and clean up resources"""
+        # Clean up automagic instrumentation first
+        if self._automagic_enabled and self._automagic_instrumentor:
+            self._automagic_instrumentor.detach_experiment(self.id)
+
         # Stop all active plugins
         for plugin_name, plugin_info in self._plugin_manager.plugins.items():
             if plugin_info.state == PluginState.ACTIVE:
@@ -152,3 +174,65 @@ class Experiment(MetricSource):
     def iteration(self) -> int:
         """Get current iteration"""
         return self._current_iteration
+
+    def _initialize_automagic(self):
+        """Initialize automagic instrumentation."""
+        try:
+            from ..automagic import AutomagicConfig, AutomagicInstrumentor
+
+            # Use provided automagic_config if available, otherwise create from ExperimentConfig
+            if self._automagic_config is not None:
+                automagic_config = self._automagic_config
+            else:
+                # Create automagic configuration from ExperimentConfig
+                # Use explicit None check to allow intentional empty set
+                if self.config.automagic_frameworks is not None:
+                    automagic_config = AutomagicConfig(frameworks=self.config.automagic_frameworks)
+                else:
+                    # Use AutomagicConfig defaults when no frameworks specified
+                    automagic_config = AutomagicConfig()
+
+            # Initialize instrumentor and attach to this experiment
+            self._automagic_instrumentor = AutomagicInstrumentor.get_instance(automagic_config)
+            self._automagic_instrumentor.attach_experiment(self)
+
+        except ImportError:
+            print("Warning: Automagic instrumentation not available. Install optional dependencies.")
+            self._automagic_enabled = False
+
+    def capture_hyperparams(self) -> dict[str, Any]:
+        """Capture hyperparameters from calling context using automagic instrumentation."""
+        if not self._automagic_enabled or not self._automagic_instrumentor:
+            return {}
+
+        return self._automagic_instrumentor.capture_hyperparameters(self, frame_depth=2)
+
+    def capture_model(self, model: Any) -> dict[str, Any]:
+        """Capture model information using automagic instrumentation."""
+        if not self._automagic_enabled or not self._automagic_instrumentor:
+            return {}
+
+        return self._automagic_instrumentor.capture_model_info(model, self)
+
+    def capture_dataset(self, dataset: Any) -> dict[str, Any]:
+        """Capture dataset information using automagic instrumentation."""
+        if not self._automagic_enabled or not self._automagic_instrumentor:
+            return {}
+
+        return self._automagic_instrumentor.capture_dataset_info(dataset, self)
+
+    def log_hyperparameter(self, name: str, value: Any):
+        """Log a hyperparameter (alias for compatibility)."""
+        # Create metric data directly to avoid intermediate dictionary creation
+        metric = MetricData(
+            name=name,
+            value=value,
+            type=MetricType.PARAMETER,
+            iteration=None,  # Parameters don't have iterations
+            source=self.get_source_id(),
+        )
+        self.emit_metric(metric)
+
+    def end(self):
+        """End the experiment and clean up resources (alias for stop)."""
+        self.stop()
