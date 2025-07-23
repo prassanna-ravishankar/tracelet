@@ -68,6 +68,7 @@ Automagic automatically hooks into popular ML frameworks:
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 from tracelet import Experiment
 
 # Enable automagic
@@ -78,24 +79,43 @@ experiment.start()
 learning_rate = 0.001
 weight_decay = 1e-4
 momentum = 0.9
+batch_size = 32
+epochs = 10
+input_size = 784
+hidden_size = 128
+num_classes = 10
 
-# PyTorch objects (automatically instrumented)
-model = nn.Sequential(...)
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+# Create a simple model (automatically instrumented)
+model = nn.Sequential(
+    nn.Linear(input_size, hidden_size),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(hidden_size, num_classes)
+)
+
+optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 criterion = nn.CrossEntropyLoss()
 
-# Training loop - metrics captured via framework hooks
-epochs = 10  # Number of training epochs
-# Assume you have a dataloader with your training data
-# dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+# Create dummy training data for demonstration
+train_data = torch.randn(1000, input_size)
+train_targets = torch.randint(0, num_classes, (1000,))
+train_dataset = TensorDataset(train_data, train_targets)
+dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
+# Training loop - metrics captured via framework hooks
 for epoch in range(epochs):
     for batch_idx, (inputs, targets) in enumerate(dataloader):
         optimizer.zero_grad()
         loss = criterion(model(inputs), targets)
         loss.backward()
         optimizer.step()  # Learning rate automatically logged
-        # Loss and gradient norms captured automatically
+        # Loss and gradient norms captured automatically (if track_model_gradients=True)
+
+        # Optional: Break after a few batches for demonstration
+        if batch_idx >= 2:
+            break
+
+experiment.end()
 ```
 
 ## How Automagic Works
@@ -156,7 +176,7 @@ Automagic automatically instruments popular ML frameworks:
 #### PyTorch Integration
 
 - **Optimizer hooks**: Automatically log learning rates and gradient norms
-- **Loss function hooks**: Capture loss values during forward passes
+- **Loss function hooks**: Capture loss values during forward passes _(Note: Only works with nn.Module-based losses like nn.CrossEntropyLoss(), not functional equivalents like torch.nn.functional.cross_entropy)_
 - **Model hooks**: Track model architecture and parameter counts
 - **Checkpoint hooks**: Monitor model saving and loading
 

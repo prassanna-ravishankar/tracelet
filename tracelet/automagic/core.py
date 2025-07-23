@@ -199,33 +199,45 @@ class AutomagicInstrumentor:
             del frame
 
     def _find_user_frame(self, start_frame):
-        """Find the first frame that's not from tracelet internals."""
+        """Find the first frame that's not from tracelet internals.
+
+        This method walks up the call stack to find user code, skipping all
+        tracelet internal frames. It uses multiple fallback strategies to handle
+        various edge cases in different environments.
+        """
         import os
 
         frame = start_frame
 
         # Get the tracelet package directory programmatically
+        # This works for normal pip installs and most distribution methods
         try:
             import tracelet
 
             tracelet_dir = os.path.dirname(tracelet.__file__)
         except (ImportError, AttributeError):
-            # Fallback: use current file's directory structure
+            # Fallback for development environments or unusual setups
+            # Use current file's directory structure to infer package location
             tracelet_dir = os.path.dirname(os.path.dirname(__file__))
 
         while frame:
             filename = frame.f_code.co_filename
 
             # Skip frames that are from tracelet package itself
-            # Check if this file is within the tracelet package directory
+            # Strategy 1: Use os.path.commonpath for robust path comparison
+            # This handles most cases including symlinks and relative paths
             try:
                 is_tracelet_internal = os.path.commonpath([filename, tracelet_dir]) == tracelet_dir
             except (ValueError, OSError):
-                # Fallback: check if filename path starts with tracelet directory
+                # Strategy 2: Direct path prefix comparison using absolute paths
+                # Handles cases where commonpath fails (e.g., different drives on Windows,
+                # or when paths don't share a common prefix)
                 try:
                     is_tracelet_internal = os.path.abspath(filename).startswith(os.path.abspath(tracelet_dir))
                 except (ValueError, OSError):
-                    # Final fallback to string matching
+                    # Strategy 3: String-based fallback for edge cases
+                    # Handles unusual path formats, network paths, or when path operations fail
+                    # Uses both forward and backward slashes for cross-platform compatibility
                     is_tracelet_internal = "/tracelet/" in filename or "\\tracelet\\" in filename
 
             if not is_tracelet_internal:

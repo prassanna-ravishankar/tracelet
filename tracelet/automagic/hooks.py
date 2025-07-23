@@ -24,6 +24,7 @@ class FrameworkHook:
         from .core import AutomagicInstrumentor
 
         self._instrumentor = AutomagicInstrumentor.get_instance()
+        self.config = self._instrumentor.config  # Access to configuration
 
     @property
     def experiment(self) -> Optional[Experiment]:
@@ -122,7 +123,7 @@ class PyTorchHook(FrameworkHook):
 
                 result = original_step(optimizer_self, *args, **kwargs)
 
-                if experiment:
+                if experiment and hook.config.track_model_gradients:
                     hook._log_gradient_norms(experiment, optimizer_self.param_groups)
 
                 return result
