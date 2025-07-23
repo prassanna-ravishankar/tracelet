@@ -7,6 +7,16 @@ import warnings
 from pathlib import Path
 from typing import Any, Union
 
+
+def is_json_serializable(value: Any) -> bool:
+    """Check if a value is JSON serializable."""
+    try:
+        json.dumps(value)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
 try:
     import torch
     import torch.nn as nn
@@ -93,7 +103,7 @@ class HyperparameterDetector:
         hyperparams = {}
         if hasattr(args, "__dict__"):
             for name, value in args.__dict__.items():
-                if self._is_serializable(value):
+                if is_json_serializable(value):
                     hyperparams[f"args_{name}"] = value
 
         return hyperparams
@@ -276,18 +286,10 @@ class HyperparameterDetector:
 
     def _serialize_value(self, value: Any) -> Any:
         """Serialize a value for logging."""
-        if self._is_serializable(value):
+        if is_json_serializable(value):
             return value
         else:
             return str(value)
-
-    def _is_serializable(self, value: Any) -> bool:
-        """Check if a value is JSON serializable."""
-        try:
-            json.dumps(value)
-            return True
-        except (TypeError, ValueError):
-            return False
 
     def _flatten_dict(self, d: dict[str, Any], prefix: str = "") -> dict[str, Any]:
         """Flatten nested dictionary."""
@@ -366,7 +368,7 @@ class ModelDetector:
         # Extract hyperparameters
         if hasattr(model, "get_params"):
             params = model.get_params()
-            info["hyperparameters"] = {k: v for k, v in params.items() if self._is_serializable(v)}
+            info["hyperparameters"] = {k: v for k, v in params.items() if is_json_serializable(v)}
 
         # Model-specific info
         if hasattr(model, "feature_importances_"):
@@ -385,20 +387,12 @@ class ModelDetector:
         if hasattr(model, "__dict__"):
             attributes = {}
             for k, v in model.__dict__.items():
-                if not k.startswith("_") and self._is_serializable(v):
+                if not k.startswith("_") and is_json_serializable(v):
                     attributes[k] = v
             if attributes:
                 info["attributes"] = attributes
 
         return info
-
-    def _is_serializable(self, value: Any) -> bool:
-        """Check if a value is JSON serializable."""
-        try:
-            json.dumps(value)
-            return True
-        except (TypeError, ValueError):
-            return False
 
 
 class DatasetDetector:

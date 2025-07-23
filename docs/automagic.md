@@ -393,7 +393,7 @@ experiment = Experiment("debug", automagic=True)
 
 ## Examples
 
-See comprehensive examples in the [examples directory](examples.md) for automagic usage patterns and best practices.
+See comprehensive examples in the [examples documentation](examples.md) and the [examples directory](https://github.com/prassanna-ravishankar/tracelet/tree/main/examples) for automagic usage patterns and best practices.
 
 ## API Reference
 

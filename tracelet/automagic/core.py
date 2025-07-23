@@ -3,12 +3,15 @@ Core automagic instrumentation system.
 """
 
 import inspect
+import logging
 import threading
 import weakref
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from ..core.experiment import Experiment
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,11 +47,7 @@ class AutomagicConfig:
     track_file_hashes: bool = True
 
     # Framework-specific
-    frameworks: set[str] = None
-
-    def __post_init__(self):
-        if self.frameworks is None:
-            self.frameworks = {"pytorch", "lightning", "sklearn", "keras", "xgboost"}
+    frameworks: set[str] = field(default_factory=lambda: {"pytorch", "lightning", "sklearn", "keras", "xgboost"})
 
 
 class AutomagicInstrumentor:
@@ -195,7 +194,7 @@ class AutomagicInstrumentor:
                     experiment.log_hyperparameter(name, value)
 
                 if hyperparams:
-                    print(f"🔮 Automagically captured hyperparameters: {list(hyperparams.keys())}")
+                    logger.info(f"Automagically captured hyperparameters: {list(hyperparams.keys())}")
         finally:
             del frame
 

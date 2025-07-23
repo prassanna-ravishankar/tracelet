@@ -2,7 +2,6 @@
 Framework-specific hooks for automatic instrumentation.
 """
 
-import contextlib
 import functools
 import importlib.util
 import threading
@@ -138,7 +137,7 @@ class PyTorchHook(FrameworkHook):
 
     def _log_gradient_norms(self, experiment: Experiment, param_groups) -> None:
         """Log gradient norms if available."""
-        with contextlib.suppress(Exception):
+        try:
             total_norm = 0
             for param_group in param_groups:
                 for p in param_group["params"]:
@@ -147,6 +146,10 @@ class PyTorchHook(FrameworkHook):
                         total_norm += param_norm.item() ** 2
             total_norm = total_norm ** (1.0 / 2)
             experiment.log_metric("gradient_norm", total_norm)
+        except (AttributeError, RuntimeError) as e:
+            # AttributeError: grad might not exist on some params
+            # RuntimeError: grad might not be accessible in some states
+            warnings.warn(f"Could not compute gradient norm: {e}", stacklevel=2)
 
     def _apply_optimizer_patches(self, wrapper) -> None:
         """Apply patches to common optimizers."""
@@ -158,8 +161,11 @@ class PyTorchHook(FrameworkHook):
         ]
 
         for module_name, class_path in optimizers:
-            with contextlib.suppress(Exception):
+            try:
                 self._patch_function(module_name, class_path, wrapper)
+            except (ImportError, AttributeError) as e:
+                # ImportError: module not found, AttributeError: class not found
+                warnings.warn(f"Could not patch {module_name}.{class_path}: {e}", stacklevel=2)
 
     def _patch_model_save(self) -> None:
         """Patch torch.save to automatically save model checkpoints."""
@@ -193,9 +199,13 @@ class PyTorchHook(FrameworkHook):
                     # Log loss value if it's a scalar
                     experiment = self.experiment
                     if experiment and hasattr(result, "item"):
-                        with contextlib.suppress(Exception):
+                        try:
                             loss_value = result.item()
                             experiment.log_metric(f"{self.__class__.__name__.lower()}_loss", loss_value)
+                        except (RuntimeError, ValueError) as e:
+                            # RuntimeError: tensor might not be scalar
+                            # ValueError: conversion issues
+                            warnings.warn(f"Could not log loss value: {e}", stacklevel=2)
 
                     return result
 
@@ -210,9 +220,13 @@ class PyTorchHook(FrameworkHook):
         ]
 
         for loss_name in loss_functions:
-            with contextlib.suppress(Exception):
+            try:
                 module_name, class_name = loss_name.rsplit(".", 1)
                 self._patch_function(module_name, class_name, loss_wrapper)
+            except (ImportError, AttributeError, ValueError) as e:
+                # ImportError: module not found, AttributeError: class not found
+                # ValueError: rsplit issue with malformed loss_name
+                warnings.warn(f"Could not patch {loss_name}: {e}", stacklevel=2)
 
 
 class SklearnHook(FrameworkHook):
@@ -240,8 +254,12 @@ class SklearnHook(FrameworkHook):
                     if hasattr(self, "get_params"):
                         params = self.get_params()
                         for param_name, param_value in params.items():
-                            with contextlib.suppress(Exception):
+                            try:
                                 experiment.log_hyperparameter(f"sklearn_{param_name}", param_value)
+                            except (TypeError, ValueError) as e:
+                                # TypeError: param_value might not be serializable
+                                # ValueError: conversion issues
+                                warnings.warn(f"Could not log sklearn parameter '{param_name}': {e}", stacklevel=2)
 
                 # Call original fit
                 result = original_fit(self, X, y, **kwargs)

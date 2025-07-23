@@ -28,6 +28,13 @@ try:
 except ImportError:
     HAS_TORCH = False
 
+try:
+    import nvidia_ml_py3 as nvml
+
+    HAS_NVML = True
+except ImportError:
+    HAS_NVML = False
+
 from ..core.experiment import Experiment
 
 
@@ -94,8 +101,9 @@ class TrainingMonitor:
             # Call the original log_metric method
             result = original_log_metric(name, value, iteration)
 
-            # Capture the metric for monitoring
-            self.capture_metric(exp_id, name, float(value) if isinstance(value, (int, float)) else 0.0, iteration)
+            # Only capture numeric metrics for monitoring
+            if isinstance(value, (int, float)):
+                self.capture_metric(exp_id, name, float(value), iteration)
 
             return result
 
@@ -378,16 +386,15 @@ class ResourceMonitor:
                     experiment.log_metric(f"gpu_{i}_memory_cached_gb", memory_cached)
 
                     # GPU utilization (if available)
-                    try:
-                        import nvidia_ml_py3 as nvml
-
-                        nvml.nvmlInit()
-                        handle = nvml.nvmlDeviceGetHandleByIndex(i)
-                        util = nvml.nvmlDeviceGetUtilizationRates(handle)
-                        experiment.log_metric(f"gpu_{i}_utilization_percent", util.gpu)
-                        experiment.log_metric(f"gpu_{i}_memory_utilization_percent", util.memory)
-                    except ImportError:
-                        pass
+                    if HAS_NVML:
+                        try:
+                            nvml.nvmlInit()
+                            handle = nvml.nvmlDeviceGetHandleByIndex(i)
+                            util = nvml.nvmlDeviceGetUtilizationRates(handle)
+                            experiment.log_metric(f"gpu_{i}_utilization_percent", util.gpu)
+                            experiment.log_metric(f"gpu_{i}_memory_utilization_percent", util.memory)
+                        except Exception as e:
+                            warnings.warn(f"Error accessing GPU {i} utilization via nvml: {e}", stacklevel=2)
 
             # Fallback to GPUtil
             elif HAS_GPUTIL:
