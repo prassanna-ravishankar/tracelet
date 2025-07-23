@@ -5,7 +5,7 @@ Automatic detection of ML experiment components.
 import json
 import warnings
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, ClassVar, Union
 
 
 def is_json_serializable(value: Any) -> bool:
@@ -36,37 +36,123 @@ except ImportError:
 class HyperparameterDetector:
     """Automatically detect hyperparameters from various sources."""
 
+    # Class-level constants to avoid recreation on every instance/call
+    _COMMON_HYPERPARAM_NAMES: ClassVar[set[str]] = {
+        "lr",
+        "learning_rate",
+        "batch_size",
+        "epochs",
+        "num_epochs",
+        "dropout",
+        "weight_decay",
+        "momentum",
+        "alpha",
+        "beta",
+        "hidden_size",
+        "hidden_dim",
+        "num_layers",
+        "num_heads",
+        "temperature",
+        "threshold",
+        "gamma",
+        "eps",
+        "epsilon",
+        "patience",
+        "max_iter",
+        "n_estimators",
+        "max_depth",
+        "min_samples_split",
+        "min_samples_leaf",
+        "random_state",
+        "seed",
+    }
+
+    _SKIP_NAMES: ClassVar[set[str]] = {
+        "self",
+        "cls",
+        "args",
+        "kwargs",
+        "i",
+        "j",
+        "k",
+        "x",
+        "y",
+        "data",
+        "target",
+        "model",
+        "optimizer",
+        "loss",
+        "device",
+        "cuda",
+        "cpu",
+        "train",
+        "test",
+        "val",
+        "dataset",
+        "dataloader",
+        "experiment",
+        "config",
+        "logger",
+        "__",
+        "_",
+        "tmp",
+        "temp",
+        "debug",
+        "verbose",
+        "print",
+        "len",
+        "range",
+        "true",
+        "false",
+        "none",
+        "null",
+        "tensor",
+        "array",
+        "df",
+        "np",
+        "torch",
+        "pd",
+    }
+
+    _HYPERPARAM_TERMS: ClassVar[list[str]] = [
+        "rate",
+        "size",
+        "dim",
+        "layer",
+        "epoch",
+        "step",
+        "decay",
+        "momentum",
+        "batch",
+        "num",
+        "max",
+        "min",
+        "alpha",
+        "beta",
+        "gamma",
+        "threshold",
+        "temperature",
+        "patience",
+        "interval",
+        "factor",
+        "scale",
+        "weight",
+        "depth",
+        "width",
+        "kernel",
+        "stride",
+        "padding",
+        "dilation",
+        "heads",
+        "attention",
+        "embed",
+        "hidden",
+        "feature",
+        "channel",
+    ]
+
     def __init__(self, config):
         self.config = config
-        self._common_hyperparam_names = {
-            "lr",
-            "learning_rate",
-            "batch_size",
-            "epochs",
-            "num_epochs",
-            "dropout",
-            "weight_decay",
-            "momentum",
-            "alpha",
-            "beta",
-            "hidden_size",
-            "hidden_dim",
-            "num_layers",
-            "num_heads",
-            "temperature",
-            "threshold",
-            "gamma",
-            "eps",
-            "epsilon",
-            "patience",
-            "max_iter",
-            "n_estimators",
-            "max_depth",
-            "min_samples_split",
-            "min_samples_leaf",
-            "random_state",
-            "seed",
-        }
 
     def extract_from_frame(self, frame) -> dict[str, Any]:
         """Extract hyperparameters from a stack frame."""
@@ -177,98 +263,15 @@ class HyperparameterDetector:
     def _is_likely_hyperparameter(self, name: str, value: Any) -> bool:
         """Heuristic to determine if a variable is likely a hyperparameter."""
         # Skip common non-hyperparameter names
-        skip_names = {
-            "self",
-            "cls",
-            "args",
-            "kwargs",
-            "i",
-            "j",
-            "k",
-            "x",
-            "y",
-            "data",
-            "target",
-            "model",
-            "optimizer",
-            "loss",
-            "device",
-            "cuda",
-            "cpu",
-            "train",
-            "test",
-            "val",
-            "dataset",
-            "dataloader",
-            "experiment",
-            "config",
-            "logger",
-            "__",
-            "_",
-            "tmp",
-            "temp",
-            "debug",
-            "verbose",
-            "print",
-            "len",
-            "range",
-            "true",
-            "false",
-            "none",
-            "null",
-            "tensor",
-            "array",
-            "df",
-            "np",
-            "torch",
-            "pd",
-        }
-
-        if name.lower() in skip_names or name.startswith("_"):
+        if name.lower() in self._SKIP_NAMES or name.startswith("_"):
             return False
 
         # Check if name matches common hyperparameter patterns
-        if name.lower() in self._common_hyperparam_names:
+        if name.lower() in self._COMMON_HYPERPARAM_NAMES:
             return True
 
         # Check if name contains hyperparameter-like terms
-        hyperparam_terms = [
-            "rate",
-            "size",
-            "dim",
-            "layer",
-            "epoch",
-            "step",
-            "decay",
-            "momentum",
-            "batch",
-            "num",
-            "max",
-            "min",
-            "alpha",
-            "beta",
-            "gamma",
-            "threshold",
-            "temperature",
-            "patience",
-            "interval",
-            "factor",
-            "scale",
-            "weight",
-            "depth",
-            "width",
-            "kernel",
-            "stride",
-            "padding",
-            "dilation",
-            "heads",
-            "attention",
-            "embed",
-            "hidden",
-            "feature",
-            "channel",
-        ]
-        if any(term in name.lower() for term in hyperparam_terms):
+        if any(term in name.lower() for term in self._HYPERPARAM_TERMS):
             return True
 
         # Check if value type and range suggests hyperparameter

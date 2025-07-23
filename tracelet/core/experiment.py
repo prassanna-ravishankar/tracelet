@@ -1,7 +1,10 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from ..automagic.core import AutomagicConfig
 
 from .orchestrator import DataFlowOrchestrator, MetricData, MetricSource, MetricType, RoutingRule
 from .plugins import PluginManager, PluginState, PluginType
@@ -34,6 +37,7 @@ class Experiment(MetricSource):
         backend: Optional[list[str]] = None,  # Changed to list[str]
         tags: Optional[list[str]] = None,
         automagic: bool = False,  # Enable automagic instrumentation
+        automagic_config: Optional["AutomagicConfig"] = None,  # Custom automagic configuration
     ):
         self.name = name
         self.id = str(uuid.uuid4())
@@ -47,6 +51,7 @@ class Experiment(MetricSource):
 
         # Automagic instrumentation
         self._automagic_enabled = automagic or self.config.enable_automagic
+        self._automagic_config = automagic_config
         self._automagic_instrumentor = None
 
         # Initialize data flow orchestrator
@@ -175,13 +180,17 @@ class Experiment(MetricSource):
         try:
             from ..automagic import AutomagicConfig, AutomagicInstrumentor
 
-            # Create automagic configuration
-            # Use explicit None check to allow intentional empty set
-            if self.config.automagic_frameworks is not None:
-                automagic_config = AutomagicConfig(frameworks=self.config.automagic_frameworks)
+            # Use provided automagic_config if available, otherwise create from ExperimentConfig
+            if self._automagic_config is not None:
+                automagic_config = self._automagic_config
             else:
-                # Use AutomagicConfig defaults when no frameworks specified
-                automagic_config = AutomagicConfig()
+                # Create automagic configuration from ExperimentConfig
+                # Use explicit None check to allow intentional empty set
+                if self.config.automagic_frameworks is not None:
+                    automagic_config = AutomagicConfig(frameworks=self.config.automagic_frameworks)
+                else:
+                    # Use AutomagicConfig defaults when no frameworks specified
+                    automagic_config = AutomagicConfig()
 
             # Initialize instrumentor and attach to this experiment
             self._automagic_instrumentor = AutomagicInstrumentor.get_instance(automagic_config)
