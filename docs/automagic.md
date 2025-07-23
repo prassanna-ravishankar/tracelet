@@ -389,18 +389,8 @@ experiment = Experiment("debug", automagic=True)
 
 ## Examples
 
-See comprehensive examples in the [examples directory](examples.md):
-
-- [Basic Automagic Usage](examples/automagic-basic.md)
-- [PyTorch Integration](examples/automagic-pytorch.md)
-- [Comparison with Manual Tracking](examples/automagic-comparison.md)
-- [Advanced Configuration](examples/automagic-advanced.md)
+See comprehensive examples in the [examples directory](examples.md) for automagic usage patterns and best practices.
 
 ## API Reference
 
-For detailed API documentation, see:
-
-- [AutomagicInstrumentor](api/automagic/core.md)
-- [HyperparamDetector](api/automagic/detectors.md)
-- [FrameworkHooks](api/automagic/hooks.md)
-- [TrainingMonitor](api/automagic/monitors.md)
+For detailed API documentation, refer to the automagic module source code and docstrings.
