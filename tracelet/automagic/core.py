@@ -114,31 +114,8 @@ class AutomagicInstrumentor:
     @classmethod
     def _configs_differ(cls, config1: AutomagicConfig, config2: AutomagicConfig) -> bool:
         """Check if two AutomagicConfig instances have different settings."""
-        # Compare all significant configuration fields
-        fields_to_compare = [
-            "detect_function_args",
-            "detect_class_attributes",
-            "detect_argparse",
-            "detect_config_files",
-            "track_model_architecture",
-            "track_model_checkpoints",
-            "track_model_gradients",
-            "track_dataset_info",
-            "track_data_samples",
-            "monitor_training_loop",
-            "monitor_loss_curves",
-            "monitor_learning_rate",
-            "epoch_detection_threshold_seconds",
-            "monitor_gpu_memory",
-            "monitor_cpu_usage",
-            "track_git_info",
-            "track_file_hashes",
-            "frameworks",
-        ]
-
-        return any(
-            getattr(config1, field_name, None) != getattr(config2, field_name, None) for field_name in fields_to_compare
-        )
+        # Use dataclass auto-generated __eq__ method for robust comparison
+        return config1 != config2
 
     def attach_experiment(self, experiment: Experiment) -> None:
         """Attach automagic instrumentation to an experiment."""
