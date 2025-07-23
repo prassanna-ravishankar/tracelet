@@ -204,17 +204,31 @@ class AutomagicInstrumentor:
 
     def _find_user_frame(self, start_frame):
         """Find the first frame that's not from tracelet internals."""
+        import os
+
         frame = start_frame
+
+        # Get the tracelet package directory programmatically
+        try:
+            import tracelet
+
+            tracelet_dir = os.path.dirname(tracelet.__file__)
+        except (ImportError, AttributeError):
+            # Fallback: use current file's directory structure
+            tracelet_dir = os.path.dirname(os.path.dirname(__file__))
 
         while frame:
             filename = frame.f_code.co_filename
 
             # Skip frames that are from tracelet package itself
-            # Check if this is within the tracelet package directory
-            is_tracelet_internal = (
-                "/tracelet/tracelet/" in filename  # Unix path to tracelet package
-                or "\\tracelet\\tracelet\\" in filename  # Windows path to tracelet package
-            )
+            # Check if this file is within the tracelet package directory
+            try:
+                is_tracelet_internal = os.path.commonpath([filename, tracelet_dir]) == tracelet_dir
+            except (ValueError, OSError):
+                # Fallback to string matching if path operations fail
+                is_tracelet_internal = (
+                    "/tracelet/" in filename or "\\tracelet\\" in filename or filename.endswith("tracelet")
+                )
 
             if not is_tracelet_internal:
                 return frame

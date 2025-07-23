@@ -108,7 +108,11 @@ class Experiment(MetricSource):
                 self._plugin_manager.start_plugin(collector_info.metadata.name)
 
     def stop(self):
-        """Stop the experiment tracking"""
+        """Stop the experiment tracking and clean up resources"""
+        # Clean up automagic instrumentation first
+        if self._automagic_enabled and self._automagic_instrumentor:
+            self._automagic_instrumentor.detach_experiment(self.id)
+
         # Stop all active plugins
         for plugin_name, plugin_info in self._plugin_manager.plugins.items():
             if plugin_info.state == PluginState.ACTIVE:
@@ -210,10 +214,5 @@ class Experiment(MetricSource):
         self.log_params({name: value})
 
     def end(self):
-        """End the experiment and clean up resources."""
-        # Clean up automagic instrumentation
-        if self._automagic_enabled and self._automagic_instrumentor:
-            self._automagic_instrumentor.detach_experiment(self.id)
-
-        # Stop experiment tracking
+        """End the experiment and clean up resources (alias for stop)."""
         self.stop()

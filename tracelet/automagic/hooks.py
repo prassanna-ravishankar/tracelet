@@ -46,31 +46,47 @@ class FrameworkHook:
 
     def remove_hooks(self) -> None:
         """Remove framework-specific hooks."""
-        for module_name, func_name in self._patched_functions:
+        for module_name, func_path in self._patched_functions:
             try:
                 module = importlib.import_module(module_name)
-                original = self._original_functions.get((module_name, func_name))
+                original = self._original_functions.get((module_name, func_path))
                 if original:
-                    setattr(module, func_name, original)
+                    # Handle dotted paths for restoration
+                    obj = module
+                    parts = func_path.split(".")
+                    for part in parts[:-1]:
+                        obj = getattr(obj, part)
+
+                    func_name = parts[-1]
+                    setattr(obj, func_name, original)
             except Exception as e:
-                warnings.warn(f"Failed to restore {module_name}.{func_name}: {e}", stacklevel=2)
+                warnings.warn(f"Failed to restore {module_name}.{func_path}: {e}", stacklevel=2)
 
         self._patched_functions.clear()
         self._original_functions.clear()
 
-    def _patch_function(self, module_name: str, func_name: str, wrapper: Callable) -> None:
-        """Helper to safely patch a function."""
+    def _patch_function(self, module_name: str, func_path: str, wrapper: Callable) -> None:
+        """Helper to safely patch a function or method using a dotted path."""
         try:
             module = importlib.import_module(module_name)
-            original = getattr(module, func_name, None)
+
+            # Handle dotted paths for nested attributes (e.g., "Adam.step")
+            obj = module
+            parts = func_path.split(".")
+            for part in parts[:-1]:
+                obj = getattr(obj, part)
+
+            func_name = parts[-1]
+            original = getattr(obj, func_name, None)
+
             if original and not hasattr(original, "_tracelet_patched"):
-                self._original_functions[(module_name, func_name)] = original
+                self._original_functions[(module_name, func_path)] = original
                 wrapped = wrapper(original)
                 wrapped._tracelet_patched = True
-                setattr(module, func_name, wrapped)
-                self._patched_functions[(module_name, func_name)] = wrapped
+                setattr(obj, func_name, wrapped)
+                self._patched_functions[(module_name, func_path)] = wrapped
         except Exception as e:
-            warnings.warn(f"Failed to patch {module_name}.{func_name}: {e}", stacklevel=2)
+            warnings.warn(f"Failed to patch {module_name}.{func_path}: {e}", stacklevel=2)
 
 
 class PyTorchHook(FrameworkHook):
@@ -135,16 +151,15 @@ class PyTorchHook(FrameworkHook):
     def _apply_optimizer_patches(self, wrapper) -> None:
         """Apply patches to common optimizers."""
         optimizers = [
-            "torch.optim.SGD",
-            "torch.optim.Adam",
-            "torch.optim.AdamW",
-            "torch.optim.RMSprop",
+            ("torch.optim", "SGD.step"),
+            ("torch.optim", "Adam.step"),
+            ("torch.optim", "AdamW.step"),
+            ("torch.optim", "RMSprop.step"),
         ]
 
-        for opt_name in optimizers:
+        for module_name, class_path in optimizers:
             with contextlib.suppress(Exception):
-                module_name, class_name = opt_name.rsplit(".", 1)
-                self._patch_function(module_name, class_name + ".step", wrapper)
+                self._patch_function(module_name, class_path, wrapper)
 
     def _patch_model_save(self) -> None:
         """Patch torch.save to automatically save model checkpoints."""

@@ -5,6 +5,7 @@ Automatic monitors for training progress and system resources.
 import threading
 import warnings
 import weakref
+from typing import Optional
 
 try:
     import psutil
@@ -43,6 +44,9 @@ class TrainingMonitor:
         # Training detection state
         self._training_state: dict[str, dict] = {}
 
+        # Metric history for recent metric access (experiment_id -> metrics history)
+        self._metric_history: dict[str, list[dict]] = {}
+
     def start(self, experiment: Experiment) -> None:
         """Start monitoring for an experiment."""
         with self._lock:
@@ -58,6 +62,9 @@ class TrainingMonitor:
                 "last_loss_time": None,
                 "training_started": False,
             }
+
+            # Initialize metric history for this experiment
+            self._metric_history[exp_id] = []
 
             # Start monitoring thread
             stop_event = threading.Event()
@@ -83,6 +90,7 @@ class TrainingMonitor:
             self._active_experiments.pop(experiment_id, None)
             self._stop_events.pop(experiment_id, None)
             self._training_state.pop(experiment_id, None)
+            self._metric_history.pop(experiment_id, None)
 
     def cleanup(self) -> None:
         """Stop all monitoring."""
@@ -125,11 +133,46 @@ class TrainingMonitor:
         # Analyze loss trends
         self._analyze_loss_trends(experiment_id, experiment, recent_metrics)
 
+    def capture_metric(self, experiment_id: str, name: str, value: float, iteration: Optional[int] = None) -> None:
+        """Capture a metric for monitoring purposes."""
+        import time
+
+        with self._lock:
+            if experiment_id not in self._metric_history:
+                return
+
+            metric_entry = {"name": name, "value": value, "iteration": iteration, "timestamp": time.time()}
+
+            # Add to history
+            self._metric_history[experiment_id].append(metric_entry)
+
+            # Keep only recent metrics (last 100 entries)
+            if len(self._metric_history[experiment_id]) > 100:
+                self._metric_history[experiment_id].pop(0)
+
     def _get_recent_metrics(self, experiment: Experiment) -> dict[str, float]:
-        """Get recent metrics from the experiment (simplified)."""
-        # This would need to integrate with the actual metric storage
-        # For now, return empty dict as placeholder
-        return {}
+        """Get recent metrics from the experiment."""
+        import time
+
+        exp_id = experiment.id
+        if exp_id not in self._metric_history:
+            return {}
+
+        # Get metrics from the last 10 seconds
+        current_time = time.time()
+        recent_threshold = current_time - 10.0  # 10 seconds ago
+
+        recent_metrics = {}
+        for metric_entry in reversed(self._metric_history[exp_id]):
+            if metric_entry["timestamp"] < recent_threshold:
+                break
+
+            # Use the most recent value for each metric name
+            name = metric_entry["name"]
+            if name not in recent_metrics:
+                recent_metrics[name] = metric_entry["value"]
+
+        return recent_metrics
 
     def _detect_epoch_changes(self, experiment_id: str, experiment: Experiment, metrics: dict[str, float]) -> None:
         """Detect epoch changes and log epoch-level metrics."""
