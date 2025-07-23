@@ -243,58 +243,39 @@ class AutomagicInstrumentor:
         """Find the first frame that's not from tracelet internals.
 
         This method walks up the call stack to find user code, skipping all
-        tracelet internal frames. It uses multiple fallback strategies to handle
-        various edge cases in different environments.
+        tracelet internal frames. It uses module names for robust detection
+        that works across all installation methods and environments.
         """
-        import os
-
         frame = start_frame
 
-        # Get the tracelet package directory programmatically
-        # This works for normal pip installs and most distribution methods
-        try:
-            import tracelet
-
-            tracelet_dir = os.path.dirname(tracelet.__file__)
-        except (ImportError, AttributeError):
-            # Fallback for development environments or unusual setups
-            # Use current file's directory structure to infer package location
-            tracelet_dir = os.path.dirname(os.path.dirname(__file__))
-
         while frame:
+            # Get the module name for this frame
+            module_name = frame.f_globals.get("__name__", "")
             filename = frame.f_code.co_filename
 
-            # Skip frames that are from tracelet package itself
-            # Strategy 1: Use os.path.commonpath for robust path comparison
-            # This handles most cases including symlinks and relative paths
-            try:
-                is_tracelet_internal = os.path.commonpath([filename, tracelet_dir]) == tracelet_dir
-            except (ValueError, OSError):
-                # Strategy 2: Direct path prefix comparison using absolute paths
-                # Handles cases where commonpath fails (e.g., different drives on Windows,
-                # or when paths don't share a common prefix)
-                try:
-                    is_tracelet_internal = os.path.abspath(filename).startswith(os.path.abspath(tracelet_dir))
-                except (ValueError, OSError):
-                    # Strategy 3: More robust path-based fallback
-                    # Try to resolve paths and compare, falling back to package name check
-                    try:
-                        # Get the actual tracelet package name from the module
-                        import tracelet
+            # Primary strategy: Use module name hierarchy
+            # This is the most reliable method as it doesn't depend on file paths
+            is_tracelet_internal = module_name.startswith("tracelet.") or module_name == "tracelet"
 
-                        package_name = tracelet.__name__
-                        # Check if the filename contains the tracelet package in its module path
-                        # This is more robust than simple string matching
-                        is_tracelet_internal = f"/{package_name}/" in filename or f"\\{package_name}\\" in filename
-                    except (ImportError, AttributeError):
-                        # Final fallback: check if file is in site-packages/tracelet or similar
-                        # This avoids false positives from user project names containing "tracelet"
-                        is_tracelet_internal = (
-                            "/site-packages/tracelet/" in filename
-                            or "\\site-packages\\tracelet\\" in filename
-                            or "/dist-packages/tracelet/" in filename
-                            or "\\dist-packages\\tracelet\\" in filename
-                        )
+            # Additional check for cases where __name__ might not be set correctly
+            # or for dynamically created modules
+            if not is_tracelet_internal and module_name in ("", "__main__"):
+                # Fallback: Check if the filename suggests tracelet internals
+                # This handles edge cases like dynamic imports or eval'd code
+                is_tracelet_internal = (
+                    "/tracelet/" in filename
+                    or "\\tracelet\\" in filename
+                    or filename.endswith("tracelet/__init__.py")
+                    or filename.endswith("tracelet\\__init__.py")
+                ) and (
+                    # Ensure it's actually from a tracelet installation, not user code
+                    "site-packages" in filename
+                    or "dist-packages" in filename
+                    or
+                    # Development installation patterns
+                    "/tracelet/tracelet/" in filename
+                    or "\\tracelet\\tracelet\\" in filename
+                )
 
             if not is_tracelet_internal:
                 return frame
