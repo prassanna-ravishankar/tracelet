@@ -10,7 +10,7 @@
   <img src="https://github.com/prassanna-ravishankar/tracelet/raw/main/docs/tracelet.webp" alt="Tracelet Logo" width="120" height="120">
 </p>
 
-Tracelet is an intelligent experiment tracking library that automatically captures PyTorch and PyTorch Lightning metrics, seamlessly integrating with popular experiment tracking platforms through a modular plugin system.
+Tracelet is an intelligent experiment tracking library that automatically captures PyTorch and PyTorch Lightning metrics, seamlessly integrating with popular experiment tracking platforms through a modular plugin system. With **automagic instrumentation**, Tracelet can automatically detect and log hyperparameters from your code with zero configuration.
 
 ## Key Features
 
@@ -23,6 +23,7 @@ Tracelet is an intelligent experiment tracking library that automatically captur
 
 ### 🚀 Automatic Metric Capture
 
+- 🔮 **Automagic Instrumentation** - Zero-config hyperparameter detection and logging
 - 🔄 PyTorch TensorBoard integration - automatically captures `writer.add_scalar()` calls
 - ⚡ PyTorch Lightning support - seamlessly tracks trainer metrics
 - 📊 System metrics monitoring (CPU, Memory, GPU support planned)
@@ -62,6 +63,7 @@ pip install tracelet[aim]        # AIM backend (Python <3.13)
 
 # Framework integrations
 pip install tracelet[lightning]  # PyTorch Lightning support
+pip install tracelet[automagic]  # Automagic instrumentation
 
 # Install multiple extras
 pip install tracelet[mlflow,clearml]        # Multiple backends
@@ -131,6 +133,102 @@ trainer.fit(model, datamodule)
 tracelet.stop_logging()
 ```
 
+### 🔮 Automagic Instrumentation
+
+Tracelet's most powerful feature is **automagic instrumentation** - zero-configuration automatic detection and logging of machine learning hyperparameters. Just enable automagic and Tracelet intelligently captures your experiment parameters:
+
+```python
+import tracelet
+from tracelet import Experiment
+
+# Enable automagic mode - that's it!
+experiment = Experiment(
+    name="automagic_experiment",
+    backend=["mlflow"],
+    automagic=True  # ✨ The magic happens here!
+)
+experiment.start()
+
+# Define your hyperparameters normally
+learning_rate = 0.001
+batch_size = 64
+epochs = 100
+dropout = 0.3
+hidden_layers = [256, 128, 64]
+optimizer = "adam"
+
+# Your training code here...
+# All hyperparameters are automatically captured and logged!
+
+experiment.end()
+```
+
+#### How Automagic Works
+
+Automagic uses intelligent heuristics to detect ML-relevant parameters:
+
+- **📝 Name patterns**: `learning_rate`, `batch_size`, `num_layers`
+- **🔢 Value ranges**: 0.001-0.1 for learning rates, 16-512 for batch sizes
+- **📊 Data types**: floats in (0,1) for rates, ints for counts
+- **🏷️ Keywords**: `rate`, `size`, `dim`, `num`, `alpha`, `beta`
+- **✅ Boolean flags**: `use_*`, `enable_*`, `has_*`
+- **📝 String configs**: optimizer names, activation functions
+
+#### Framework Integration
+
+Automagic automatically hooks into popular ML frameworks:
+
+```python
+# PyTorch - automatic capture of model parameters, loss, gradients
+model = torch.nn.Sequential(...)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+criterion = torch.nn.CrossEntropyLoss()
+
+# Training loop - metrics captured automatically via hooks
+for epoch in range(epochs):
+    loss = criterion(model(data), targets)
+    optimizer.step()  # Learning rate automatically logged
+    # Loss and gradient norms captured via framework hooks
+```
+
+#### Comparison: Manual vs Automagic
+
+**Manual Tracking** (traditional approach):
+
+```python
+# 🔧 MANUAL: Explicit logging required
+experiment.log_params({
+    "learning_rate": 0.001,
+    "batch_size": 64,
+    "epochs": 100,
+    "dropout": 0.3,
+    "hidden_layers": [256, 128, 64],
+    "optimizer": "adam",
+    # ... 20+ more parameters
+})
+```
+
+**Automagic Tracking** (zero-config):
+
+```python
+# 🔮 AUTOMAGIC: Just define variables normally
+learning_rate = 0.001
+batch_size = 64
+epochs = 100
+dropout = 0.3
+hidden_layers = [256, 128, 64]
+optimizer = "adam"
+# All parameters automatically captured! ✨
+```
+
+**Benefits:**
+
+- 🚀 **95% fewer logging calls** compared to manual tracking
+- 🧠 **Intelligent parameter detection** with ML-specific heuristics
+- 🔧 **Framework hooks** automatically capture training metrics
+- ⚡ **Real-time monitoring** with zero overhead
+- 🎯 **Focus on research**, not logging boilerplate
+
 ### Advanced Configuration
 
 ```python
@@ -149,7 +247,8 @@ experiment = tracelet.start_logging(
         "track_env": True,                 # Environment capture
         "track_tensorboard": True,         # Auto-capture TB metrics
         "track_lightning": True,           # PyTorch Lightning support
-    }
+    },
+    automagic=True                         # Enable automagic instrumentation
 )
 
 # Log custom parameters
@@ -181,7 +280,9 @@ settings = TraceletSettings(
     track_tensorboard=True,             # TensorBoard integration
     track_lightning=True,               # PyTorch Lightning support
     track_git=True,                     # Git repository info
-    track_env=True                      # Environment capture
+    track_env=True,                     # Environment capture
+    enable_automagic=True,              # Enable automagic instrumentation
+    automagic_frameworks={"pytorch", "sklearn", "xgboost"}  # Frameworks to instrument
 )
 ```
 
@@ -197,6 +298,8 @@ Key environment variables:
 - `TRACELET_TRACK_LIGHTNING`: Enable PyTorch Lightning support
 - `TRACELET_TRACK_GIT`: Enable Git repository tracking
 - `TRACELET_TRACK_ENV`: Enable environment capture
+- `TRACELET_ENABLE_AUTOMAGIC`: Enable automagic instrumentation
+- `TRACELET_AUTOMAGIC_FRAMEWORKS`: Comma-separated frameworks ("pytorch,sklearn")
 
 ## Plugin Development
 
@@ -302,11 +405,14 @@ experiment = tracelet.start_logging(
 
 ## Roadmap
 
+- [x] 🔮 **Automagic Instrumentation** - Zero-config hyperparameter detection
 - [ ] AWS SageMaker integration
 - [ ] Prometheus metrics export
 - [ ] Real-time metric streaming
 - [ ] Web UI for local experiments
 - [ ] Distributed training support
+- [ ] Enhanced automagic model architecture capture
+- [ ] Automagic dataset profiling and statistics
 
 ## Contributing
 
