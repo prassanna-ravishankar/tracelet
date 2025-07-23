@@ -266,23 +266,27 @@ hyperparams = capture_hyperparams(frame_depth=2)
 
 ### Custom Detection Rules
 
-Extend automagic with custom patterns:
+Automagic uses built-in detection patterns that can be customized through configuration:
 
 ```python
-from tracelet.automagic import HyperparamDetector
+from tracelet.automagic import AutomagicConfig
 
-detector = HyperparamDetector()
+# Configure detection patterns through AutomagicConfig
+config = AutomagicConfig(
+    # Enable/disable detection methods
+    detect_function_args=True,
+    detect_argparse=True,
+    detect_config_files=True,
 
-# Add custom name patterns
-detector.add_name_pattern(r".*_factor$")    # Matches scaling_factor
-detector.add_name_pattern(r"^min_.*")       # Matches min_samples
+    # Framework-specific detection
+    frameworks={"pytorch", "sklearn", "xgboost"}
+)
 
-# Add custom value ranges
-detector.add_value_range("factor", 0.1, 10.0)
-detector.add_value_range("threshold", 0.0, 1.0)
-
-# Add custom keywords
-detector.add_keywords(["sigma", "tau", "lambda"])
+experiment = Experiment(
+    "custom_detection",
+    automagic=True,
+    automagic_config=config
+)
 ```
 
 ### Integration with Existing Code

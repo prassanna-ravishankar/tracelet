@@ -2,7 +2,6 @@
 Automatic detection of ML experiment components.
 """
 
-import contextlib
 import json
 import warnings
 from pathlib import Path
@@ -156,10 +155,12 @@ class HyperparameterDetector:
             obj = local_vars["self"]
             for attr_name in dir(obj):
                 if not attr_name.startswith("_"):
-                    with contextlib.suppress(Exception):
+                    try:
                         value = getattr(obj, attr_name)
                         if self._is_likely_hyperparameter(attr_name, value):
                             hyperparams[f"self.{attr_name}"] = self._serialize_value(value)
+                    except Exception as e:
+                        warnings.warn(f"Could not access attribute '{attr_name}': {e}", stacklevel=2)
 
         return hyperparams
 
@@ -459,9 +460,11 @@ class DatasetDetector:
 
         # Try to get sample if possible
         if hasattr(dataset, "__getitem__") and len(dataset) > 0:
-            with contextlib.suppress(Exception):
+            try:
                 sample = dataset[0]
                 info["sample_structure"] = self._describe_sample_structure(sample)
+            except Exception as e:
+                warnings.warn(f"Could not access dataset sample: {e}", stacklevel=2)
 
         return info
 

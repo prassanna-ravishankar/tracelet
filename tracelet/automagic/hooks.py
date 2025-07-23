@@ -214,17 +214,6 @@ class PyTorchHook(FrameworkHook):
                 module_name, class_name = loss_name.rsplit(".", 1)
                 self._patch_function(module_name, class_name, loss_wrapper)
 
-    def _log_gradient_norms(self, experiment: Experiment, optimizer) -> None:
-        """Log gradient norms for debugging."""
-        total_norm = 0
-        for group in optimizer.param_groups:
-            for p in group["params"]:
-                if p.grad is not None:
-                    param_norm = p.grad.data.norm(2)
-                    total_norm += param_norm.item() ** 2
-        total_norm = total_norm ** (1.0 / 2)
-        experiment.log_metric("gradient_norm", total_norm)
-
 
 class SklearnHook(FrameworkHook):
     """Hook for scikit-learn automatic instrumentation."""
@@ -265,21 +254,11 @@ class SklearnHook(FrameworkHook):
 
             return wrapped_fit
 
-        # Common sklearn estimators - this is a simplified approach
-        # In practice, you'd want to patch the BaseEstimator class
-        common_estimators = [
-            "sklearn.ensemble.RandomForestClassifier",
-            "sklearn.ensemble.RandomForestRegressor",
-            "sklearn.linear_model.LogisticRegression",
-            "sklearn.linear_model.LinearRegression",
-            "sklearn.svm.SVC",
-            "sklearn.svm.SVR",
-        ]
-
-        for estimator_name in common_estimators:
-            with contextlib.suppress(Exception):
-                module_name, class_name = estimator_name.rsplit(".", 1)
-                self._patch_function(module_name, f"{class_name}.fit", fit_wrapper)
+        # Patch the base estimator class to cover all scikit-learn estimators
+        try:
+            self._patch_function("sklearn.base", "BaseEstimator.fit", fit_wrapper)
+        except Exception as e:
+            warnings.warn(f"Failed to patch BaseEstimator.fit: {e}", stacklevel=2)
 
     def _patch_model_predict(self) -> None:
         """Patch predict methods to capture inference information."""
@@ -295,8 +274,11 @@ class SklearnHook(FrameworkHook):
 
             return wrapped_predict
 
-        # Similar patching as fit method
-        # This is simplified - in practice you'd patch BaseEstimator
+        # Patch the base estimator class to cover all scikit-learn estimators
+        try:
+            self._patch_function("sklearn.base", "BaseEstimator.predict", predict_wrapper)
+        except Exception as e:
+            warnings.warn(f"Failed to patch BaseEstimator.predict: {e}", stacklevel=2)
 
 
 class XGBoostHook(FrameworkHook):

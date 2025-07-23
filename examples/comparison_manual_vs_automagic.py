@@ -185,7 +185,7 @@ def show_detailed_comparison():
     print("    # MUST log every metric manually")
     print("    experiment.log_metric('loss', loss, epoch)")
     print("    experiment.log_metric('accuracy', accuracy, epoch)")
-    print("    experiment.log_metric('learning_rate', lr, epoch)")
+    print("    experiment.log_metric('learning_rate', learning_rate, epoch)")
     print("")
     print("# 5. MANUALLY log final results")
     print("experiment.log_params({")

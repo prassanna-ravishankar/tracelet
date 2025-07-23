@@ -117,9 +117,6 @@ class AutomagicInstrumentor:
             if self.config.monitor_gpu_memory or self.config.monitor_cpu_usage:
                 self.resource_monitor.start(experiment)
 
-            # Start automatic frame inspection
-            self._start_continuous_frame_inspection(experiment)
-
     def detach_experiment(self, experiment_id: str) -> None:
         """Detach automagic instrumentation from an experiment."""
         with self._lock:
@@ -235,15 +232,6 @@ class AutomagicInstrumentor:
             frame = frame.f_back
 
         return None
-
-    def _start_continuous_frame_inspection(self, experiment: Experiment) -> None:
-        """Start continuous monitoring for new variables that look like hyperparameters."""
-        if not self.config.detect_class_attributes:
-            return
-
-        # Start a background thread that periodically checks for new hyperparameters
-        # This is optional - the main capture happens immediately on experiment creation
-        pass
 
     def _apply_framework_hooks(self, experiment: Experiment) -> None:
         """Apply framework-specific hooks."""

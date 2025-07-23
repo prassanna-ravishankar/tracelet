@@ -5,7 +5,7 @@ Automatic monitors for training progress and system resources.
 import threading
 import warnings
 import weakref
-from typing import Optional
+from typing import Any, Optional
 
 try:
     import psutil
@@ -47,6 +47,9 @@ class TrainingMonitor:
         # Metric history for recent metric access (experiment_id -> metrics history)
         self._metric_history: dict[str, list[dict]] = {}
 
+        # Store original log_metric methods to restore later
+        self._original_log_metric: dict[str, callable] = {}
+
     def start(self, experiment: Experiment) -> None:
         """Start monitoring for an experiment."""
         with self._lock:
@@ -66,6 +69,9 @@ class TrainingMonitor:
             # Initialize metric history for this experiment
             self._metric_history[exp_id] = []
 
+            # Hook into the experiment's log_metric method to capture metrics
+            self._wrap_log_metric(experiment)
+
             # Start monitoring thread
             stop_event = threading.Event()
             self._stop_events[exp_id] = stop_event
@@ -73,6 +79,29 @@ class TrainingMonitor:
             monitor_thread = threading.Thread(target=self._monitor_loop, args=(exp_id, stop_event), daemon=True)
             self._monitor_threads[exp_id] = monitor_thread
             monitor_thread.start()
+
+    def _wrap_log_metric(self, experiment: Experiment) -> None:
+        """Wrap the experiment's log_metric method to capture metrics."""
+        exp_id = experiment.id
+        if hasattr(experiment, "_original_log_metric_wrapped"):
+            return  # Already wrapped
+
+        # Store the original method
+        original_log_metric = experiment.log_metric
+        self._original_log_metric[exp_id] = original_log_metric
+
+        def wrapped_log_metric(name: str, value: Any, iteration: Optional[int] = None):
+            # Call the original log_metric method
+            result = original_log_metric(name, value, iteration)
+
+            # Capture the metric for monitoring
+            self.capture_metric(exp_id, name, float(value) if isinstance(value, (int, float)) else 0.0, iteration)
+
+            return result
+
+        # Replace the method and mark as wrapped
+        experiment.log_metric = wrapped_log_metric
+        experiment._original_log_metric_wrapped = True
 
     def stop(self, experiment_id: str) -> None:
         """Stop monitoring for an experiment."""
@@ -85,6 +114,16 @@ class TrainingMonitor:
                 if thread.is_alive():
                     thread.join(timeout=1.0)  # Wait up to 1 second
                 del self._monitor_threads[experiment_id]
+
+            # Restore original log_metric method if we wrapped it
+            if experiment_id in self._original_log_metric:
+                experiment_ref = self._active_experiments.get(experiment_id)
+                if experiment_ref:
+                    experiment = experiment_ref()
+                    if experiment and hasattr(experiment, "_original_log_metric_wrapped"):
+                        experiment.log_metric = self._original_log_metric[experiment_id]
+                        delattr(experiment, "_original_log_metric_wrapped")
+                del self._original_log_metric[experiment_id]
 
             # Clean up state
             self._active_experiments.pop(experiment_id, None)
