@@ -109,19 +109,21 @@ class PyTorchHook(FrameworkHook):
 
     def _create_optimizer_step_wrapper(self):
         """Create the optimizer step wrapper function."""
+        # Capture the hook's self to use in the wrapper
+        hook = self
 
         def optimizer_step_wrapper(original_step):
             @functools.wraps(original_step)
-            def wrapped_step(self, *args, **kwargs):
-                experiment = self._get_any_active_experiment()
+            def wrapped_step(optimizer_self, *args, **kwargs):
+                experiment = hook._get_any_active_experiment()
 
                 if experiment:
-                    self._log_learning_rates(experiment, self.param_groups)
+                    hook._log_learning_rates(experiment, optimizer_self.param_groups)
 
-                result = original_step(self, *args, **kwargs)
+                result = original_step(optimizer_self, *args, **kwargs)
 
                 if experiment:
-                    self._log_gradient_norms(experiment, self.param_groups)
+                    hook._log_gradient_norms(experiment, optimizer_self.param_groups)
 
                 return result
 
@@ -190,18 +192,20 @@ class PyTorchHook(FrameworkHook):
 
     def _patch_loss_functions(self) -> None:
         """Patch common loss functions to automatically log loss values."""
+        # Capture the hook's self to use in the wrapper
+        hook = self
 
         def loss_wrapper(original_loss_class):
             class WrappedLoss(original_loss_class):
-                def forward(self, *args, **kwargs):
+                def forward(loss_self, *args, **kwargs):
                     result = super().forward(*args, **kwargs)
 
                     # Log loss value if it's a scalar
-                    experiment = self.experiment
+                    experiment = hook.experiment
                     if experiment and hasattr(result, "item"):
                         try:
                             loss_value = result.item()
-                            experiment.log_metric(f"{self.__class__.__name__.lower()}_loss", loss_value)
+                            experiment.log_metric(f"{loss_self.__class__.__name__.lower()}_loss", loss_value)
                         except (RuntimeError, ValueError) as e:
                             # RuntimeError: tensor might not be scalar
                             # ValueError: conversion issues
@@ -239,11 +243,13 @@ class SklearnHook(FrameworkHook):
 
     def _patch_model_fit(self) -> None:
         """Patch fit methods to capture training information."""
+        # Capture the hook's self to use in the wrapper
+        hook = self
 
         def fit_wrapper(original_fit):
             @functools.wraps(original_fit)
-            def wrapped_fit(self, X, y=None, **kwargs):
-                experiment = self.experiment
+            def wrapped_fit(estimator_self, X, y=None, **kwargs):
+                experiment = hook.experiment
                 if experiment:
                     # Log dataset information
                     if hasattr(X, "shape"):
@@ -251,8 +257,8 @@ class SklearnHook(FrameworkHook):
                         experiment.log_hyperparameter("n_features", X.shape[1])
 
                     # Log model hyperparameters
-                    if hasattr(self, "get_params"):
-                        params = self.get_params()
+                    if hasattr(estimator_self, "get_params"):
+                        params = estimator_self.get_params()
                         for param_name, param_value in params.items():
                             try:
                                 experiment.log_hyperparameter(f"sklearn_{param_name}", param_value)
@@ -262,7 +268,7 @@ class SklearnHook(FrameworkHook):
                                 warnings.warn(f"Could not log sklearn parameter '{param_name}': {e}", stacklevel=2)
 
                 # Call original fit
-                result = original_fit(self, X, y, **kwargs)
+                result = original_fit(estimator_self, X, y, **kwargs)
 
                 if experiment:
                     # Log training completion
@@ -280,15 +286,17 @@ class SklearnHook(FrameworkHook):
 
     def _patch_model_predict(self) -> None:
         """Patch predict methods to capture inference information."""
+        # Capture the hook's self to use in the wrapper
+        hook = self
 
         def predict_wrapper(original_predict):
             @functools.wraps(original_predict)
-            def wrapped_predict(self, X, **kwargs):
-                experiment = self.experiment
+            def wrapped_predict(estimator_self, X, **kwargs):
+                experiment = hook.experiment
                 if experiment and hasattr(X, "shape"):
                     experiment.log_metric("inference_samples", X.shape[0])
 
-                return original_predict(self, X, **kwargs)
+                return original_predict(estimator_self, X, **kwargs)
 
             return wrapped_predict
 

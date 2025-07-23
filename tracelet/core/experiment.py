@@ -211,7 +211,15 @@ class Experiment(MetricSource):
 
     def log_hyperparameter(self, name: str, value: Any):
         """Log a hyperparameter (alias for compatibility)."""
-        self.log_params({name: value})
+        # Create metric data directly to avoid intermediate dictionary creation
+        metric = MetricData(
+            name=name,
+            value=value,
+            type=MetricType.PARAMETER,
+            iteration=None,  # Parameters don't have iterations
+            source=self.get_source_id(),
+        )
+        self.emit_metric(metric)
 
     def end(self):
         """End the experiment and clean up resources (alias for stop)."""
