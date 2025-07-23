@@ -276,6 +276,7 @@ class ResourceMonitor:
         self._monitor_threads: dict[str, threading.Thread] = {}
         self._stop_events: dict[str, threading.Event] = {}
         self._lock = threading.RLock()
+        self._nvml_initialized = False
 
     def start(self, experiment: Experiment) -> None:
         """Start resource monitoring for an experiment."""
@@ -321,22 +322,39 @@ class ResourceMonitor:
 
     def _monitor_loop(self, experiment_id: str, stop_event: threading.Event) -> None:
         """Main resource monitoring loop."""
-        while not stop_event.wait(5.0):  # Monitor every 5 seconds
+        # Initialize NVML once at the start of monitoring
+        if HAS_NVML and not self._nvml_initialized:
             try:
-                experiment_ref = self._active_experiments.get(experiment_id)
-                if not experiment_ref:
-                    break
-
-                experiment = experiment_ref()
-                if not experiment:
-                    break
-
-                self._log_system_metrics(experiment)
-                self._log_gpu_metrics(experiment)
-
+                nvml.nvmlInit()
+                self._nvml_initialized = True
             except Exception as e:
-                warnings.warn(f"Error in resource monitor for {experiment_id}: {e}", stacklevel=2)
-                break
+                warnings.warn(f"Failed to initialize NVML: {e}", stacklevel=2)
+
+        try:
+            while not stop_event.wait(5.0):  # Monitor every 5 seconds
+                try:
+                    experiment_ref = self._active_experiments.get(experiment_id)
+                    if not experiment_ref:
+                        break
+
+                    experiment = experiment_ref()
+                    if not experiment:
+                        break
+
+                    self._log_system_metrics(experiment)
+                    self._log_gpu_metrics(experiment)
+
+                except Exception as e:
+                    warnings.warn(f"Error in resource monitor for {experiment_id}: {e}", stacklevel=2)
+                    break
+        finally:
+            # Shutdown NVML when monitoring loop ends
+            if self._nvml_initialized:
+                try:
+                    nvml.nvmlShutdown()
+                    self._nvml_initialized = False
+                except Exception as e:
+                    warnings.warn(f"Failed to shutdown NVML: {e}", stacklevel=2)
 
     def _log_system_metrics(self, experiment: Experiment) -> None:
         """Log CPU and memory metrics."""
@@ -386,9 +404,8 @@ class ResourceMonitor:
                     experiment.log_metric(f"gpu_{i}_memory_cached_gb", memory_cached)
 
                     # GPU utilization (if available)
-                    if HAS_NVML:
+                    if HAS_NVML and self._nvml_initialized:
                         try:
-                            nvml.nvmlInit()
                             handle = nvml.nvmlDeviceGetHandleByIndex(i)
                             util = nvml.nvmlDeviceGetUtilizationRates(handle)
                             experiment.log_metric(f"gpu_{i}_utilization_percent", util.gpu)

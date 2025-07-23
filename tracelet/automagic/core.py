@@ -221,10 +221,12 @@ class AutomagicInstrumentor:
             try:
                 is_tracelet_internal = os.path.commonpath([filename, tracelet_dir]) == tracelet_dir
             except (ValueError, OSError):
-                # Fallback to string matching if path operations fail
-                is_tracelet_internal = (
-                    "/tracelet/" in filename or "\\tracelet\\" in filename or filename.endswith("tracelet")
-                )
+                # Fallback: check if filename path starts with tracelet directory
+                try:
+                    is_tracelet_internal = os.path.abspath(filename).startswith(os.path.abspath(tracelet_dir))
+                except (ValueError, OSError):
+                    # Final fallback to string matching
+                    is_tracelet_internal = "/tracelet/" in filename or "\\tracelet\\" in filename
 
             if not is_tracelet_internal:
                 return frame

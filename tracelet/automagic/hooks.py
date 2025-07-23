@@ -115,7 +115,7 @@ class PyTorchHook(FrameworkHook):
         def optimizer_step_wrapper(original_step):
             @functools.wraps(original_step)
             def wrapped_step(optimizer_self, *args, **kwargs):
-                experiment = hook._get_any_active_experiment()
+                experiment = hook.experiment
 
                 if experiment:
                     hook._log_learning_rates(experiment, optimizer_self.param_groups)

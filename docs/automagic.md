@@ -85,8 +85,12 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
 
 # Training loop - metrics captured via framework hooks
+epochs = 10  # Number of training epochs
+# Assume you have a dataloader with your training data
+# dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
 for epoch in range(epochs):
-    for batch in dataloader:
+    for batch_idx, (inputs, targets) in enumerate(dataloader):
         optimizer.zero_grad()
         loss = criterion(model(inputs), targets)
         loss.backward()
@@ -254,14 +258,14 @@ export TRACELET_TRACK_MODEL_ARCHITECTURE=true
 Force capture of specific variables:
 
 ```python
-from tracelet import capture_hyperparams
+from tracelet.automagic import capture_hyperparams
 
-# Capture current scope variables
-hyperparams = capture_hyperparams()
-experiment.log_params(hyperparams)
+# Capture current scope variables and log them automatically
+# Note: This function automatically logs to the experiment, no need to call log_params
+hyperparams = capture_hyperparams(experiment)
 
-# Capture from specific frame
-hyperparams = capture_hyperparams(frame_depth=2)
+# Alternative: Use the experiment's built-in method
+hyperparams = experiment.capture_hyperparams()
 ```
 
 ### Custom Detection Rules
