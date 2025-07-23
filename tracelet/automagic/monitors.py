@@ -71,6 +71,9 @@ class TrainingMonitor:
                 "loss_history": [],
                 "last_loss_time": None,
                 "training_started": False,
+                "last_epoch_value": None,  # Track explicit epoch metric values
+                "last_val_metric_time": None,  # Track when validation metrics were seen
+                "train_metrics_since_val": 0,  # Count training metrics since last validation
             }
 
             # Initialize metric history for this experiment
@@ -222,18 +225,44 @@ class TrainingMonitor:
         return recent_metrics
 
     def _detect_epoch_changes(self, experiment_id: str, experiment: Experiment, metrics: dict[str, float]) -> None:
-        """Detect epoch changes and log epoch-level metrics."""
-        # Look for common epoch indicators in metrics
-        epoch_indicators = ["epoch", "train_loss", "val_loss", "accuracy"]
+        """Detect epoch changes using robust heuristics."""
+        state = self._training_state[experiment_id]
+        import time
 
-        for indicator in epoch_indicators:
-            if indicator in metrics:
-                # Simple heuristic: if we see these metrics, increment epoch
-                state = self._training_state[experiment_id]
-                current_epoch = state.get("epoch", 0)
-                state["epoch"] = current_epoch + 1
+        current_time = time.time()
+
+        # Strategy 1: Look for explicit epoch metric
+        if "epoch" in metrics:
+            epoch_value = metrics["epoch"]
+            last_epoch_value = state.get("last_epoch_value")
+
+            # Only increment if epoch value actually increased
+            if last_epoch_value is None or epoch_value > last_epoch_value:
+                state["last_epoch_value"] = epoch_value
+                state["epoch"] = int(epoch_value)
                 experiment.log_metric("detected_epoch", state["epoch"])
-                break
+                return
+
+        # Strategy 2: Infer epoch from validation metrics pattern
+        # Look for validation metrics (typically logged once per epoch)
+        val_metrics = [k for k in metrics if any(pattern in k.lower() for pattern in ["val_", "valid_", "test_"])]
+        train_metrics = [k for k in metrics if any(pattern in k.lower() for pattern in ["train_", "training_"])]
+
+        if val_metrics:
+            # Reset training metric counter when we see validation metrics
+            state["train_metrics_since_val"] = 0
+            last_val_time = state.get("last_val_metric_time", 0)
+
+            # Only count as new epoch if sufficient time has passed since last validation
+            # This prevents multiple validation metrics in same epoch from being counted separately
+            if current_time - last_val_time > 30:  # At least 30 seconds between epochs
+                state["last_val_metric_time"] = current_time
+                state["epoch"] = state.get("epoch", 0) + 1
+                experiment.log_metric("detected_epoch", state["epoch"])
+
+        elif train_metrics:
+            # Track training metrics to help detect epoch boundaries
+            state["train_metrics_since_val"] = state.get("train_metrics_since_val", 0) + 1
 
     def _analyze_loss_trends(self, experiment_id: str, experiment: Experiment, metrics: dict[str, float]) -> None:
         """Analyze loss trends and detect convergence."""
