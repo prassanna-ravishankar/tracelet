@@ -12,7 +12,7 @@ This example demonstrates ALL of Tracelet's automagic capabilities:
 - Environment and version tracking
 """
 
-import random
+import secrets
 import time
 
 from tracelet import Experiment
@@ -34,62 +34,114 @@ def comprehensive_automagic_demo():
 
     # Core training hyperparameters (will be auto-detected)
     learning_rate = 3e-4
-    batch_size = 128  # noqa: F841 - Power of 2, ML range
+    batch_size = 128  # Power of 2, ML range
     epochs = 50
-    max_iterations = 10000  # noqa: F841 - Training iteration limit
+    max_iterations = 10000  # Training iteration limit
 
     # Model architecture hyperparameters
-    hidden_dim = 512  # noqa: F841 - "dim" keyword detected
-    num_layers = 6  # noqa: F841 - "num_*" pattern
-    num_heads = 8  # noqa: F841 - Attention heads
-    dropout_rate = 0.1  # noqa: F841 - "rate" keyword + range
-    weight_decay = 1e-5  # noqa: F841 - "decay" keyword + scientific notation
+    hidden_dim = 512  # "dim" keyword detected
+    num_layers = 6  # "num_*" pattern
+    num_heads = 8  # Attention heads
+    dropout_rate = 0.1  # "rate" keyword + range
+    weight_decay = 1e-5  # "decay" keyword + scientific notation
 
     # Optimization hyperparameters
-    warmup_steps = 1000  # noqa: F841 - Training schedule
-    beta1 = 0.9  # noqa: F841 - Optimizer beta values
-    beta2 = 0.999  # noqa: F841 - Adam-specific parameters
-    epsilon = 1e-8  # noqa: F841 - Numerical stability
-    gradient_clip_norm = 1.0  # noqa: F841 - Gradient clipping
+    warmup_steps = 1000  # Training schedule
+    beta1 = 0.9  # Optimizer beta values
+    beta2 = 0.999  # Adam-specific parameters
+    epsilon = 1e-8  # Numerical stability
+    gradient_clip_norm = 1.0  # Gradient clipping
 
     # Training strategy hyperparameters
-    patience = 10  # noqa: F841 - Early stopping patience
-    min_lr = 1e-6  # noqa: F841 - LR scheduler minimum
-    factor = 0.5  # noqa: F841 - LR reduction factor
-    threshold = 1e-4  # noqa: F841 - Improvement threshold
+    patience = 10  # Early stopping patience
+    min_lr = 1e-6  # LR scheduler minimum
+    factor = 0.5  # LR reduction factor
+    threshold = 1e-4  # Improvement threshold
 
     # Data processing hyperparameters
-    sequence_length = 256  # noqa: F841 - Input sequence length
-    vocab_size = 50000  # noqa: F841 - Vocabulary size
-    padding_idx = 0  # noqa: F841 - Padding token ID
+    sequence_length = 256  # Input sequence length
+    vocab_size = 50000  # Vocabulary size
+    padding_idx = 0  # Padding token ID
 
     # Regularization hyperparameters
-    label_smoothing = 0.1  # noqa: F841 - Label smoothing factor
-    temperature = 2.0  # noqa: F841 - Distillation temperature
-    alpha = 0.7  # noqa: F841 - Loss mixing coefficient
+    label_smoothing = 0.1  # Label smoothing factor
+    temperature = 2.0  # Distillation temperature
+    alpha = 0.7  # Loss mixing coefficient
 
     # Boolean hyperparameters
-    use_layer_norm = True  # noqa: F841 - Layer normalization
-    use_residual = True  # noqa: F841 - Residual connections
-    use_attention = True  # noqa: F841 - Attention mechanism
-    use_mixed_precision = False  # noqa: F841 - AMP training
+    use_layer_norm = True  # Layer normalization
+    use_residual = True  # Residual connections
+    use_attention = True  # Attention mechanism
+    use_mixed_precision = False  # AMP training
 
     # String hyperparameters
-    optimizer_type = "adamw"  # noqa: F841 - Optimizer choice
-    lr_scheduler = "cosine"  # noqa: F841 - LR schedule type
-    activation = "gelu"  # noqa: F841 - Activation function
-    initialization = "xavier_uniform"  # noqa: F841 - Weight init
-    loss_function = "cross_entropy"  # noqa: F841 - Loss type
+    optimizer_type = "adamw"  # Optimizer choice
+    lr_scheduler = "cosine"  # LR schedule type
+    activation = "gelu"  # Activation function
+    initialization = "xavier_uniform"  # Weight init
+    loss_function = "cross_entropy"  # Loss type
 
-    print("📋 Defined 25+ hyperparameters covering:")
-    print("   🔢 Core training parameters (LR, batch size, epochs)")
-    print("   🏗️  Model architecture (dimensions, layers, heads)")
-    print("   ⚡ Optimization settings (betas, decay, clipping)")
-    print("   🎯 Training strategy (patience, scheduling)")
-    print("   📊 Data processing (sequence length, vocab)")
-    print("   🛡️  Regularization (smoothing, temperature)")
-    print("   ✅ Boolean flags (layer norm, residual, attention)")
-    print("   📝 String configurations (optimizer, scheduler, activation)")
+    # Create comprehensive parameter summary that uses ALL variables
+    print("📋 COMPREHENSIVE HYPERPARAMETER SHOWCASE")
+    print("   All 25+ parameters defined and ready for automagic capture:")
+    print()
+
+    print("🔢 CORE TRAINING PARAMETERS:")
+    print(f"   • learning_rate: {learning_rate}")
+    print(f"   • batch_size: {batch_size}")
+    print(f"   • epochs: {epochs}")
+    print(f"   • max_iterations: {max_iterations}")
+    print()
+
+    print("🏗️  MODEL ARCHITECTURE:")
+    print(f"   • hidden_dim: {hidden_dim}")
+    print(f"   • num_layers: {num_layers}")
+    print(f"   • num_heads: {num_heads}")
+    print(f"   • sequence_length: {sequence_length}")
+    print(f"   • vocab_size: {vocab_size}")
+    print(f"   • padding_idx: {padding_idx}")
+    print()
+
+    print("⚡ OPTIMIZATION SETTINGS:")
+    print(f"   • weight_decay: {weight_decay}")
+    print(f"   • beta1: {beta1}")
+    print(f"   • beta2: {beta2}")
+    print(f"   • epsilon: {epsilon}")
+    print(f"   • gradient_clip_norm: {gradient_clip_norm}")
+    print()
+
+    print("🎯 TRAINING STRATEGY:")
+    print(f"   • warmup_steps: {warmup_steps}")
+    print(f"   • patience: {patience}")
+    print(f"   • min_lr: {min_lr}")
+    print(f"   • factor: {factor}")
+    print(f"   • threshold: {threshold}")
+    print()
+
+    print("🛡️  REGULARIZATION:")
+    print(f"   • dropout_rate: {dropout_rate}")
+    print(f"   • label_smoothing: {label_smoothing}")
+    print(f"   • temperature: {temperature}")
+    print(f"   • alpha: {alpha}")
+    print()
+
+    print("✅ BOOLEAN FLAGS:")
+    print(f"   • use_layer_norm: {use_layer_norm}")
+    print(f"   • use_residual: {use_residual}")
+    print(f"   • use_attention: {use_attention}")
+    print(f"   • use_mixed_precision: {use_mixed_precision}")
+    print()
+
+    print("📝 STRING CONFIGURATIONS:")
+    print(f"   • optimizer_type: {optimizer_type}")
+    print(f"   • lr_scheduler: {lr_scheduler}")
+    print(f"   • activation: {activation}")
+    print(f"   • initialization: {initialization}")
+    print(f"   • loss_function: {loss_function}")
+    print()
+
+    print("🎯 TOTAL: 25+ hyperparameters across all ML categories!")
+    print("   These will ALL be captured automatically by automagic!")
     print()
 
     # =================================================================
@@ -127,7 +179,7 @@ def comprehensive_automagic_demo():
     print("🎭 Simulating automatic framework capture...")
 
     # These would be captured automatically by framework hooks:
-    model_info = {  # noqa: F841
+    model_info = {
         "model_type": "transformer",
         "total_parameters": 175_000_000,  # 175M parameters
         "trainable_parameters": 175_000_000,
@@ -135,7 +187,7 @@ def comprehensive_automagic_demo():
         "memory_usage_mb": 2048,
     }
 
-    dataset_info = {  # noqa: F841
+    dataset_info = {
         "dataset_type": "text_classification",
         "train_samples": 100_000,
         "val_samples": 10_000,
@@ -143,6 +195,10 @@ def comprehensive_automagic_demo():
         "num_classes": 5,
         "avg_sequence_length": 186,
     }
+
+    # In real usage, these would be automatically logged by framework hooks
+    print(f"   🏗️  Model: {model_info['model_type']} ({model_info['total_parameters']:,} params)")
+    print(f"   📊 Dataset: {dataset_info['dataset_type']} ({dataset_info['train_samples']:,} samples)")
 
     print("   🏗️  Model architecture captured automatically")
     print("   📊 Dataset information captured automatically")
@@ -164,22 +220,23 @@ def comprehensive_automagic_demo():
         print(f"📊 Epoch {epoch + 1}/{min(epochs, 8)}")
 
         # Simulate training metrics (would be auto-captured via hooks)
-        train_loss = 2.5 * (0.85**epoch) + random.uniform(-0.1, 0.1)  # noqa: S311
-        train_acc = 0.2 + (0.7 * (1 - 0.85**epoch)) + random.uniform(-0.02, 0.02)  # noqa: S311
-        val_loss = train_loss + random.uniform(0.05, 0.25)  # noqa: S311
-        val_acc = train_acc - random.uniform(0.01, 0.05)  # noqa: S311
+        rng = secrets.SystemRandom()
+        train_loss = 2.5 * (0.85**epoch) + rng.uniform(-0.1, 0.1)
+        train_acc = 0.2 + (0.7 * (1 - 0.85**epoch)) + rng.uniform(-0.02, 0.02)
+        val_loss = train_loss + rng.uniform(0.05, 0.25)
+        val_acc = train_acc - rng.uniform(0.01, 0.05)
 
         # Learning rate scheduling (would be auto-captured)
         current_lr = learning_rate * (0.95**epoch)
 
         # System metrics (would be auto-captured)
-        gpu_memory_gb = random.uniform(6.2, 7.8)  # noqa: S311
-        cpu_usage_pct = random.uniform(45, 85)  # noqa: S311
-        epoch_time_minutes = random.uniform(12, 18)  # noqa: S311
+        gpu_memory_gb = rng.uniform(6.2, 7.8)
+        cpu_usage_pct = rng.uniform(45, 85)
+        epoch_time_minutes = rng.uniform(12, 18)
 
         # Gradient information (would be auto-captured)
-        grad_norm = random.uniform(0.8, 2.5)  # noqa: S311
-        grad_std = random.uniform(0.1, 0.4)  # noqa: S311
+        grad_norm = rng.uniform(0.8, 2.5)
+        grad_std = rng.uniform(0.1, 0.4)
 
         # In real automagic mode, these would all be captured automatically:
         metrics = {

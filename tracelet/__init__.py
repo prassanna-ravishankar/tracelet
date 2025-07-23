@@ -22,7 +22,7 @@ except ImportError:
 
 # Check for automagic support
 try:
-    from .automagic.core import automagic, capture_hyperparams  # noqa: F401
+    from .automagic.core import automagic, capture_hyperparams
 
     _has_automagic = True
 except ImportError:
@@ -48,5 +48,8 @@ if _has_automagic:
         "automagic",
         "capture_hyperparams",
     ])
+    # Make imports available at module level
+    globals()["automagic"] = automagic
+    globals()["capture_hyperparams"] = capture_hyperparams
 
 # Note: MLflowBackend is available via backends.mlflow when _has_mlflow is True

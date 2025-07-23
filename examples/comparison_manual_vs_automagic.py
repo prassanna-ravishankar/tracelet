@@ -7,7 +7,7 @@ and once with automagic tracking - to demonstrate the dramatic difference
 in code complexity and developer effort.
 """
 
-import random
+import secrets
 import time
 
 from tracelet import Experiment
@@ -34,6 +34,17 @@ def run_manual_experiment():
     experiment.start()
 
     # MANUAL: Must explicitly log all hyperparameters
+    print("📝 MANUAL PARAMETER LOGGING DEMONSTRATION:")
+    print(f"   • learning_rate: {learning_rate} (manually logged)")
+    print(f"   • batch_size: {batch_size} (manually logged)")
+    print(f"   • epochs: {epochs} (manually logged)")
+    print(f"   • dropout: {dropout} (manually logged)")
+    print(f"   • hidden_size: {hidden_size} (manually logged)")
+    print("   • optimizer: adam (manually logged)")
+    print("   • model_type: neural_network (manually logged)")
+    print("   🔧 ALL parameters require explicit logging calls!")
+    print()
+
     print("📝 Manually logging hyperparameters...")
     experiment.log_params({
         "learning_rate": learning_rate,
@@ -49,8 +60,9 @@ def run_manual_experiment():
     print("🚀 Training with manual metric logging...")
     for epoch in range(epochs):
         # Simulate training
-        loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
-        accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)  # noqa: S311
+        rng = secrets.SystemRandom()
+        loss = 1.0 - (epoch * 0.15) + rng.uniform(-0.1, 0.1)
+        accuracy = 0.5 + (epoch * 0.12) + rng.uniform(-0.05, 0.05)
 
         # MANUAL: Must log every metric explicitly
         experiment.log_metric("loss", loss, iteration=epoch)
@@ -77,18 +89,29 @@ def run_automagic_experiment():
     print("=" * 50)
 
     # Define the SAME hyperparameters (automatically captured!)
-    learning_rate = 0.001  # noqa: F841
-    batch_size = 32  # noqa: F841
+    learning_rate = 0.001
+    batch_size = 32
     epochs = 5
-    dropout = 0.2  # noqa: F841
-    hidden_size = 128  # noqa: F841
+    dropout = 0.2
+    hidden_size = 128
 
     # Additional parameters that will be auto-captured
-    optimizer = "adam"  # noqa: F841
-    model_type = "neural_network"  # noqa: F841
+    optimizer = "adam"
+    model_type = "neural_network"
 
     # AUTOMAGIC: Single line replaces all manual setup!
     print("🔮 Creating automagic experiment...")
+    print("📋 AUTOMAGIC PARAMETER CAPTURE DEMONSTRATION:")
+    print(f"   • learning_rate: {learning_rate} (auto-detected by value range)")
+    print(f"   • batch_size: {batch_size} (auto-detected by name pattern)")
+    print(f"   • epochs: {epochs} (auto-detected by ML keyword)")
+    print(f"   • dropout: {dropout} (auto-detected by name + range)")
+    print(f"   • hidden_size: {hidden_size} (auto-detected by 'size' keyword)")
+    print(f"   • optimizer: {optimizer} (auto-detected string config)")
+    print(f"   • model_type: {model_type} (auto-detected by name pattern)")
+    print("   🎯 All 7 parameters captured with ZERO manual logging!")
+    print()
+
     experiment = Experiment(
         name="automagic_comparison_experiment",
         backend=[],
@@ -103,8 +126,9 @@ def run_automagic_experiment():
     print("🚀 Training with automagic tracking...")
     for epoch in range(epochs):
         # Simulate the SAME training
-        loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
-        accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)  # noqa: S311
+        rng = secrets.SystemRandom()
+        loss = 1.0 - (epoch * 0.15) + rng.uniform(-0.1, 0.1)
+        accuracy = 0.5 + (epoch * 0.12) + rng.uniform(-0.05, 0.05)
 
         # AUTOMAGIC: Minimal logging (could be even more automatic with hooks)
         experiment.log_metric("loss", loss, iteration=epoch)

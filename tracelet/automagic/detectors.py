@@ -2,6 +2,7 @@
 Automatic detection of ML experiment components.
 """
 
+import contextlib
 import json
 import warnings
 from pathlib import Path
@@ -65,9 +66,8 @@ class HyperparameterDetector:
         if not frame:
             return hyperparams
 
-        # Get local and global variables from frame
+        # Get local variables from frame
         local_vars = frame.f_locals
-        # global_vars = frame.f_globals  # Not used currently
 
         # Extract function arguments
         if self.config.detect_function_args:
@@ -156,12 +156,10 @@ class HyperparameterDetector:
             obj = local_vars["self"]
             for attr_name in dir(obj):
                 if not attr_name.startswith("_"):
-                    try:
+                    with contextlib.suppress(Exception):
                         value = getattr(obj, attr_name)
                         if self._is_likely_hyperparameter(attr_name, value):
                             hyperparams[f"self.{attr_name}"] = self._serialize_value(value)
-                    except Exception:  # noqa: S112
-                        continue  # Skip attributes that can't be accessed
 
         return hyperparams
 
@@ -461,11 +459,9 @@ class DatasetDetector:
 
         # Try to get sample if possible
         if hasattr(dataset, "__getitem__") and len(dataset) > 0:
-            try:
+            with contextlib.suppress(Exception):
                 sample = dataset[0]
                 info["sample_structure"] = self._describe_sample_structure(sample)
-            except Exception:  # noqa: S110
-                pass  # Ignore if sample can't be accessed
 
         return info
 

@@ -7,7 +7,7 @@ but with automagic tracking. Compare the two files to see how automagic eliminat
 120+ manual logging calls while providing the same (or better) experiment tracking.
 """
 
-import random
+import secrets
 import time
 
 from tracelet import Experiment
@@ -25,25 +25,30 @@ def automagic_pytorch_training():
     learning_rate = 0.001
     batch_size = 64
     epochs = 10
-    weight_decay = 1e-4  # noqa: F841
+    weight_decay = 1e-4
     dropout_rate = 0.3
     hidden_layers = [256, 128, 64]
-    activation = "relu"  # noqa: F841
+    activation = "relu"
     optimizer_type = "adam"
 
     # Additional config that will be auto-captured
-    model_type = "feedforward_neural_network"  # noqa: F841
-    dataset = "synthetic_classification"  # noqa: F841
-    input_size = 784  # noqa: F841
-    output_size = 10  # noqa: F841
-    num_classes = 10  # noqa: F841
+    model_type = "feedforward_neural_network"
+    dataset = "synthetic_classification"
+    input_size = 784
+    output_size = 10
+    num_classes = 10
+
+    # Variables above are intentionally not used in code - they demonstrate
+    # automagic hyperparameter capture from local variables
 
     print("🏗️  Model Configuration:")
+    print(f"   Type: {model_type}")
+    print(f"   Dataset: {dataset}")
+    print(f"   Input Size: {input_size}, Output: {output_size}, Classes: {num_classes}")
     print(f"   Architecture: {hidden_layers}")
-    print(f"   Learning Rate: {learning_rate}")
-    print(f"   Batch Size: {batch_size}")
-    print(f"   Epochs: {epochs}")
-    print(f"   Dropout: {dropout_rate}")
+    print(f"   Learning Rate: {learning_rate}, Weight Decay: {weight_decay}")
+    print(f"   Batch Size: {batch_size}, Epochs: {epochs}")
+    print(f"   Dropout: {dropout_rate}, Activation: {activation}")
     print(f"   Optimizer: {optimizer_type}")
     print()
 
@@ -75,8 +80,9 @@ def automagic_pytorch_training():
         print(f"\n📊 Epoch {epoch + 1}/{epochs}")
 
         # Simulate training phase
-        epoch_train_loss = 2.3 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
-        epoch_train_acc = 0.1 + (epoch * 0.08) + random.uniform(-0.02, 0.02)  # noqa: S311
+        rng = secrets.SystemRandom()
+        epoch_train_loss = 2.3 - (epoch * 0.15) + rng.uniform(-0.1, 0.1)
+        epoch_train_acc = 0.1 + (epoch * 0.08) + rng.uniform(-0.02, 0.02)
 
         # In real PyTorch with automagic, these would be captured automatically:
         # - Loss via criterion hooks
@@ -91,8 +97,8 @@ def automagic_pytorch_training():
         experiment.log_metric("train_accuracy", epoch_train_acc, iteration=epoch)
 
         # Simulate validation
-        epoch_val_loss = epoch_train_loss + random.uniform(0.05, 0.15)  # noqa: S311
-        epoch_val_acc = epoch_train_acc - random.uniform(0.01, 0.05)  # noqa: S311
+        epoch_val_loss = epoch_train_loss + rng.uniform(0.05, 0.15)
+        epoch_val_acc = epoch_train_acc - rng.uniform(0.01, 0.05)
 
         experiment.log_metric("val_loss", epoch_val_loss, iteration=epoch)
         experiment.log_metric("val_accuracy", epoch_val_acc, iteration=epoch)

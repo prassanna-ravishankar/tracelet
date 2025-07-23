@@ -2,6 +2,7 @@
 Framework-specific hooks for automatic instrumentation.
 """
 
+import contextlib
 import functools
 import importlib.util
 import threading
@@ -86,42 +87,53 @@ class PyTorchHook(FrameworkHook):
         # Patch loss computation
         self._patch_loss_functions()
 
-    def _patch_optimizer_step(self) -> None:  # noqa: C901
+    def _patch_optimizer_step(self) -> None:
         """Patch optimizer.step() to capture learning rates and gradients."""
+        optimizer_step_wrapper = self._create_optimizer_step_wrapper()
+        self._apply_optimizer_patches(optimizer_step_wrapper)
+
+    def _create_optimizer_step_wrapper(self):
+        """Create the optimizer step wrapper function."""
 
         def optimizer_step_wrapper(original_step):
             @functools.wraps(original_step)
             def wrapped_step(self, *args, **kwargs):
-                # Get ANY active experiment (truly automagic - no need to specify which one)
                 experiment = self._get_any_active_experiment()
-                if experiment:
-                    # AUTOMAGIC: Log learning rate without user intervention
-                    for i, param_group in enumerate(self.param_groups):
-                        lr = param_group.get("lr", 0)
-                        experiment.log_metric(f"lr_group_{i}", lr)
 
-                # Call original step
+                if experiment:
+                    self._log_learning_rates(experiment, self.param_groups)
+
                 result = original_step(self, *args, **kwargs)
 
                 if experiment:
-                    # AUTOMAGIC: Log gradient norms if enabled
-                    try:
-                        total_norm = 0
-                        for param_group in self.param_groups:
-                            for p in param_group["params"]:
-                                if p.grad is not None:
-                                    param_norm = p.grad.data.norm(2)
-                                    total_norm += param_norm.item() ** 2
-                        total_norm = total_norm ** (1.0 / 2)
-                        experiment.log_metric("gradient_norm", total_norm)
-                    except Exception:  # noqa: S110
-                        pass  # Don't break training if gradient logging fails
+                    self._log_gradient_norms(experiment, self.param_groups)
 
                 return result
 
             return wrapped_step
 
-        # Patch common optimizers
+        return optimizer_step_wrapper
+
+    def _log_learning_rates(self, experiment: Experiment, param_groups) -> None:
+        """Log learning rates for all parameter groups."""
+        for i, param_group in enumerate(param_groups):
+            lr = param_group.get("lr", 0)
+            experiment.log_metric(f"lr_group_{i}", lr)
+
+    def _log_gradient_norms(self, experiment: Experiment, param_groups) -> None:
+        """Log gradient norms if available."""
+        with contextlib.suppress(Exception):
+            total_norm = 0
+            for param_group in param_groups:
+                for p in param_group["params"]:
+                    if p.grad is not None:
+                        param_norm = p.grad.data.norm(2)
+                        total_norm += param_norm.item() ** 2
+            total_norm = total_norm ** (1.0 / 2)
+            experiment.log_metric("gradient_norm", total_norm)
+
+    def _apply_optimizer_patches(self, wrapper) -> None:
+        """Apply patches to common optimizers."""
         optimizers = [
             "torch.optim.SGD",
             "torch.optim.Adam",
@@ -130,11 +142,9 @@ class PyTorchHook(FrameworkHook):
         ]
 
         for opt_name in optimizers:
-            try:
+            with contextlib.suppress(Exception):
                 module_name, class_name = opt_name.rsplit(".", 1)
-                self._patch_function(module_name, class_name + ".step", optimizer_step_wrapper)
-            except Exception:  # noqa: S110
-                pass  # Ignore if optimizer not available
+                self._patch_function(module_name, class_name + ".step", wrapper)
 
     def _patch_model_save(self) -> None:
         """Patch torch.save to automatically save model checkpoints."""
@@ -168,11 +178,9 @@ class PyTorchHook(FrameworkHook):
                     # Log loss value if it's a scalar
                     experiment = self.experiment
                     if experiment and hasattr(result, "item"):
-                        try:
+                        with contextlib.suppress(Exception):
                             loss_value = result.item()
                             experiment.log_metric(f"{self.__class__.__name__.lower()}_loss", loss_value)
-                        except Exception:  # noqa: S110
-                            pass  # Ignore if loss can't be logged
 
                     return result
 
@@ -187,11 +195,9 @@ class PyTorchHook(FrameworkHook):
         ]
 
         for loss_name in loss_functions:
-            try:
+            with contextlib.suppress(Exception):
                 module_name, class_name = loss_name.rsplit(".", 1)
                 self._patch_function(module_name, class_name, loss_wrapper)
-            except Exception:  # noqa: S110
-                pass  # Ignore if loss function not available
 
     def _log_gradient_norms(self, experiment: Experiment, optimizer) -> None:
         """Log gradient norms for debugging."""
@@ -213,7 +219,7 @@ class SklearnHook(FrameworkHook):
         self._patch_model_fit()
         self._patch_model_predict()
 
-    def _patch_model_fit(self) -> None:  # noqa: C901
+    def _patch_model_fit(self) -> None:
         """Patch fit methods to capture training information."""
 
         def fit_wrapper(original_fit):
@@ -230,10 +236,8 @@ class SklearnHook(FrameworkHook):
                     if hasattr(self, "get_params"):
                         params = self.get_params()
                         for param_name, param_value in params.items():
-                            try:  # noqa: SIM105
+                            with contextlib.suppress(Exception):
                                 experiment.log_hyperparameter(f"sklearn_{param_name}", param_value)
-                            except Exception:  # noqa: S110
-                                pass  # Ignore serialization errors for complex objects
 
                 # Call original fit
                 result = original_fit(self, X, y, **kwargs)
@@ -258,11 +262,9 @@ class SklearnHook(FrameworkHook):
         ]
 
         for estimator_name in common_estimators:
-            try:
+            with contextlib.suppress(Exception):
                 module_name, class_name = estimator_name.rsplit(".", 1)
                 self._patch_function(module_name, f"{class_name}.fit", fit_wrapper)
-            except Exception:  # noqa: S110
-                pass  # Ignore if module not available
 
     def _patch_model_predict(self) -> None:
         """Patch predict methods to capture inference information."""

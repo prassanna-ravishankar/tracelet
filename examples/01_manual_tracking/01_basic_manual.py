@@ -7,7 +7,7 @@ all parameters, metrics, and artifacts. This gives you complete control
 but requires explicit logging calls for everything.
 """
 
-import random
+import secrets
 import time
 
 from tracelet import Experiment
@@ -75,8 +75,9 @@ def manual_experiment():
     best_accuracy = 0
     for epoch in range(epochs):
         # Simulate training
-        epoch_loss = 1.0 - (epoch * 0.15) + random.uniform(-0.1, 0.1)  # noqa: S311
-        epoch_accuracy = 0.5 + (epoch * 0.12) + random.uniform(-0.05, 0.05)  # noqa: S311
+        rng = secrets.SystemRandom()
+        epoch_loss = 1.0 - (epoch * 0.15) + rng.uniform(-0.1, 0.1)
+        epoch_accuracy = 0.5 + (epoch * 0.12) + rng.uniform(-0.05, 0.05)
 
         # MANUAL: Log metrics for each epoch
         experiment.log_metric("loss", epoch_loss, iteration=epoch)
@@ -93,7 +94,7 @@ def manual_experiment():
         print(f"   Epoch {epoch + 1}/{epochs}: " f"loss={epoch_loss:.4f}, acc={epoch_accuracy:.4f}")
 
         # MANUAL: Log system metrics if needed
-        experiment.log_metric("epoch_duration", random.uniform(2.5, 3.5), iteration=epoch)  # noqa: S311
+        experiment.log_metric("epoch_duration", rng.uniform(2.5, 3.5), iteration=epoch)
 
         time.sleep(0.1)  # Simulate training time
 
