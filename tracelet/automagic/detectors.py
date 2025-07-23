@@ -439,7 +439,7 @@ class DatasetDetector:
     def _analyze_numpy_array(self, array: "np.ndarray") -> dict[str, Any]:
         """Analyze NumPy array."""
         return {
-            "shape": array.shape,
+            "shape": list(array.shape),
             "dtype": str(array.dtype),
             "size": array.size,
             "ndim": array.ndim,

@@ -255,7 +255,7 @@ class TrainingMonitor:
 
             # Only count as new epoch if sufficient time has passed since last validation
             # This prevents multiple validation metrics in same epoch from being counted separately
-            if current_time - last_val_time > 30:  # At least 30 seconds between epochs
+            if current_time - last_val_time > self.config.epoch_detection_threshold_seconds:
                 state["last_val_metric_time"] = current_time
                 state["epoch"] = state.get("epoch", 0) + 1
                 experiment.log_metric("detected_epoch", state["epoch"])

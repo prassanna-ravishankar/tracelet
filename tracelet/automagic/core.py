@@ -37,6 +37,7 @@ class AutomagicConfig:
     monitor_training_loop: bool = True
     monitor_loss_curves: bool = True
     monitor_learning_rate: bool = True
+    epoch_detection_threshold_seconds: float = 30.0  # Time between validation metrics to count as new epoch
 
     # Resource monitoring
     monitor_gpu_memory: bool = True
@@ -127,6 +128,7 @@ class AutomagicInstrumentor:
             "monitor_training_loop",
             "monitor_loss_curves",
             "monitor_learning_rate",
+            "epoch_detection_threshold_seconds",
             "monitor_gpu_memory",
             "monitor_cpu_usage",
             "track_git_info",

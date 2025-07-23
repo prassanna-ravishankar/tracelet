@@ -49,7 +49,7 @@ if _has_automagic:
         "capture_hyperparams",
     ])
     # Make imports available at module level
-    globals()["automagic"] = automagic
-    globals()["capture_hyperparams"] = capture_hyperparams
+    automagic = automagic
+    capture_hyperparams = capture_hyperparams
 
 # Note: MLflowBackend is available via backends.mlflow when _has_mlflow is True

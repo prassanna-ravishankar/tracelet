@@ -226,7 +226,7 @@ optimizer = "adam"
 - 🚀 **95% fewer logging calls** compared to manual tracking
 - 🧠 **Intelligent parameter detection** with ML-specific heuristics
 - 🔧 **Framework hooks** automatically capture training metrics
-- ⚡ **Real-time monitoring** with zero overhead
+- ⚡ **Real-time monitoring** with minimal overhead
 - 🎯 **Focus on research**, not logging boilerplate
 
 ### Advanced Configuration

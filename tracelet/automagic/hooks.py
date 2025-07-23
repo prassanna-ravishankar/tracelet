@@ -258,21 +258,8 @@ class SklearnHook(FrameworkHook):
             def wrapped_fit(estimator_self, X, y=None, **kwargs):
                 experiment = hook.experiment
                 if experiment:
-                    # Log dataset information
-                    if hasattr(X, "shape"):
-                        experiment.log_hyperparameter("n_samples", X.shape[0])
-                        experiment.log_hyperparameter("n_features", X.shape[1])
-
-                    # Log model hyperparameters
-                    if hasattr(estimator_self, "get_params"):
-                        params = estimator_self.get_params()
-                        for param_name, param_value in params.items():
-                            try:
-                                experiment.log_hyperparameter(f"sklearn_{param_name}", param_value)
-                            except (TypeError, ValueError) as e:
-                                # TypeError: param_value might not be serializable
-                                # ValueError: conversion issues
-                                warnings.warn(f"Could not log sklearn parameter '{param_name}': {e}", stacklevel=2)
+                    hook._log_dataset_info(experiment, X)
+                    hook._log_model_hyperparameters(experiment, estimator_self)
 
                 # Call original fit
                 result = original_fit(estimator_self, X, y, **kwargs)
@@ -290,6 +277,26 @@ class SklearnHook(FrameworkHook):
             self._patch_function("sklearn.base", "BaseEstimator.fit", fit_wrapper)
         except Exception as e:
             warnings.warn(f"Failed to patch BaseEstimator.fit: {e}", stacklevel=2)
+
+    def _log_dataset_info(self, experiment, X) -> None:
+        """Log dataset information."""
+        if hasattr(X, "shape"):
+            experiment.log_hyperparameter("n_samples", X.shape[0])
+            experiment.log_hyperparameter("n_features", X.shape[1])
+
+    def _log_model_hyperparameters(self, experiment, estimator_self) -> None:
+        """Log model hyperparameters."""
+        if hasattr(estimator_self, "get_params"):
+            params = estimator_self.get_params()
+            for param_name, param_value in params.items():
+                try:
+                    experiment.log_hyperparameter(f"sklearn_{param_name}", param_value)
+                except (TypeError, ValueError):
+                    # Log string representation for non-serializable parameters
+                    try:
+                        experiment.log_hyperparameter(f"sklearn_{param_name}", str(param_value))
+                    except Exception as e:
+                        warnings.warn(f"Could not log sklearn parameter '{param_name}': {e}", stacklevel=2)
 
     def _patch_model_predict(self) -> None:
         """Patch predict methods to capture inference information."""

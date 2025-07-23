@@ -330,7 +330,7 @@ def comprehensive_automagic_demo():
     print("   🚀 Focus on model development, not logging")
     print("   🧠 Intelligent detection of ML parameters")
     print("   🔧 Framework-agnostic automatic capture")
-    print("   ⚡ Real-time monitoring with zero overhead")
+    print("   ⚡ Real-time monitoring with minimal overhead")
 
 
 def demonstrate_intelligent_detection():
