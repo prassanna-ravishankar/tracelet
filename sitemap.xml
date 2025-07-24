@@ -2,130 +2,134 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
+    </url>
+    <url>
+         <loc>https://prassanna-ravishankar.github.io/tracelet/automagic/</loc>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/configuration/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/examples/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/installation/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/quick-start/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/core/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/interface/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/settings/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/backends/mlflow/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/collectors/git/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/collectors/system/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/core/experiment/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/core/plugins/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/api/frameworks/pytorch/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/backends/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/backends/aim/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/backends/clearml/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/backends/mlflow/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/backends/multi-backend/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/backends/wandb/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/development/architecture/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/development/contributing/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/examples/basic/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/examples/multi-backend/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/examples/notebooks/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/guides/best-practices/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/guides/migration/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/guides/troubleshooting/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/integrations/lightning/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/integrations/pytorch/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
     <url>
          <loc>https://prassanna-ravishankar.github.io/tracelet/integrations/tensorboard/</loc>
-         <lastmod>2025-07-22</lastmod>
+         <lastmod>2025-07-24</lastmod>
     </url>
 </urlset>
