@@ -5,11 +5,7 @@ Tracelet - A lightweight ML experiment tracker
 __version__ = "0.1.0"
 
 from .backends import get_backend
-from .collectors.git import GitCollector
-from .collectors.system import SystemMetricsCollector
 from .core.experiment import Experiment, ExperimentConfig
-from .frameworks.lightning import LightningFramework
-from .frameworks.pytorch import PyTorchFramework
 from .interface import get_active_experiment, start_logging, stop_logging
 
 # Dynamic import system
@@ -19,6 +15,8 @@ from .utils.imports import get_available_backends, get_available_frameworks, is_
 _has_mlflow = is_available("mlflow")
 _has_torch = is_available("torch")
 _has_lightning = is_available("pytorch_lightning")
+_has_git = is_available("git")
+_has_psutil = is_available("psutil")
 
 # Check for automagic support
 try:
@@ -32,10 +30,6 @@ __all__ = [
     # Core components
     "Experiment",
     "ExperimentConfig",
-    "GitCollector",
-    "LightningFramework",
-    "PyTorchFramework",
-    "SystemMetricsCollector",
     "get_active_experiment",
     # Main interface
     "start_logging",

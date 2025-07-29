@@ -39,6 +39,7 @@ class ImportManager:
             # Utilities
             "pynvml": "pynvml",
             "psutil": "psutil",
+            "git": "git",
             "gitpython": "git",
             "GPUtil": "GPUtil",
             "nvidia_ml_py3": "nvidia_ml_py3",
