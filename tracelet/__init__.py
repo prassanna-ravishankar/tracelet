@@ -50,6 +50,29 @@ if _has_automagic:
     automagic = automagic
     capture_hyperparams = capture_hyperparams
 
+# Add SystemMetricsCollector if psutil is available
+if _has_psutil:
+    from .collectors.system import SystemMetricsCollector  # noqa: F401
+
+    __all__.append("SystemMetricsCollector")
+
+# Add GitCollector if git is available
+if _has_git:
+    from .collectors.git import GitCollector  # noqa: F401
+
+    __all__.append("GitCollector")
+
+# Add framework classes if available
+if _has_torch:
+    from .frameworks.pytorch import PyTorchFramework  # noqa: F401
+
+    __all__.append("PyTorchFramework")
+
+if _has_lightning:
+    from .frameworks.lightning import LightningFramework  # noqa: F401
+
+    __all__.append("LightningFramework")
+
 
 # Public API for dynamic imports
 def available_backends():
