@@ -14,8 +14,8 @@ except ImportError:
 def mock_clearml_task():
     """Mock ClearML Task for testing without actual ClearML API calls."""
     with (
-        patch("tracelet.plugins.clearml_backend.Task") as mock_task_class,
-        patch("tracelet.plugins.clearml_backend.Logger") as mock_logger_class,
+        patch("tracelet.backends.clearml_backend.Task") as mock_task_class,
+        patch("tracelet.backends.clearml_backend.Logger") as mock_logger_class,
     ):
         # Create mock instances
         mock_task = Mock()
@@ -43,8 +43,8 @@ def mock_clearml_task():
 @pytest.mark.skipif(not _has_clearml, reason="ClearML not installed")
 def test_clearml_backend_plugin_metadata():
     """Test ClearML backend plugin metadata."""
+    from tracelet.backends.clearml_backend import ClearMLBackend
     from tracelet.core.plugins import PluginType
-    from tracelet.plugins.clearml_backend import ClearMLBackend
 
     metadata = ClearMLBackend.get_metadata()
 
@@ -57,7 +57,7 @@ def test_clearml_backend_plugin_metadata():
 @pytest.mark.skipif(not _has_clearml, reason="ClearML not installed")
 def test_clearml_backend_initialization(mock_clearml_task):
     """Test ClearML backend initialization."""
-    from tracelet.plugins.clearml_backend import ClearMLBackend
+    from tracelet.backends.clearml_backend import ClearMLBackend
 
     backend = ClearMLBackend()
 
@@ -94,8 +94,8 @@ def test_clearml_backend_initialization(mock_clearml_task):
 @pytest.mark.skipif(not _has_clearml, reason="ClearML not installed")
 def test_clearml_backend_scalar_logging(mock_clearml_task):
     """Test scalar metric logging."""
+    from tracelet.backends.clearml_backend import ClearMLBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.clearml_backend import ClearMLBackend
 
     backend = ClearMLBackend()
     backend.initialize({})
@@ -115,8 +115,8 @@ def test_clearml_backend_scalar_logging(mock_clearml_task):
 @pytest.mark.skipif(not _has_clearml, reason="ClearML not installed")
 def test_clearml_backend_parameter_logging(mock_clearml_task):
     """Test parameter logging."""
+    from tracelet.backends.clearml_backend import ClearMLBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.clearml_backend import ClearMLBackend
 
     backend = ClearMLBackend()
     backend.initialize({})
@@ -136,8 +136,8 @@ def test_clearml_backend_enhanced_visualizations(mock_clearml_task):
     """Test enhanced visualization logging."""
     import numpy as np
 
+    from tracelet.backends.clearml_backend import ClearMLBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.clearml_backend import ClearMLBackend
 
     backend = ClearMLBackend()
     backend.initialize({})
@@ -175,7 +175,7 @@ def test_clearml_backend_enhanced_visualizations(mock_clearml_task):
 @pytest.mark.skipif(not _has_clearml, reason="ClearML not installed")
 def test_clearml_backend_experiment_metadata(mock_clearml_task):
     """Test experiment metadata saving."""
-    from tracelet.plugins.clearml_backend import ClearMLBackend
+    from tracelet.backends.clearml_backend import ClearMLBackend
 
     backend = ClearMLBackend()
     backend.initialize({})
@@ -207,7 +207,7 @@ def test_clearml_backend_experiment_metadata(mock_clearml_task):
 @pytest.mark.skipif(not _has_clearml, reason="ClearML not installed")
 def test_clearml_backend_lifecycle(mock_clearml_task):
     """Test complete backend lifecycle."""
-    from tracelet.plugins.clearml_backend import ClearMLBackend
+    from tracelet.backends.clearml_backend import ClearMLBackend
 
     backend = ClearMLBackend()
 
@@ -231,8 +231,8 @@ def test_clearml_backend_lifecycle(mock_clearml_task):
 
 def test_clearml_backend_without_clearml():
     """Test ClearML backend behavior when ClearML is not available."""
-    with patch("tracelet.plugins.clearml_backend._has_clearml", False):
-        from tracelet.plugins.clearml_backend import ClearMLBackend
+    with patch("tracelet.backends.clearml_backend._has_clearml", False):
+        from tracelet.backends.clearml_backend import ClearMLBackend
 
         backend = ClearMLBackend()
 

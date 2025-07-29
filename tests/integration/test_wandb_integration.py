@@ -13,7 +13,7 @@ except ImportError:
 @pytest.fixture
 def mock_wandb_run():
     """Mock W&B run for testing without actual W&B API calls."""
-    with patch("tracelet.plugins.wandb_backend.wandb") as mock_wandb:
+    with patch("tracelet.backends.wandb_backend.wandb") as mock_wandb:
         # Create mock run instance
         mock_run = Mock()
         mock_wandb.init.return_value = mock_run
@@ -38,8 +38,8 @@ def mock_wandb_run():
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_plugin_metadata():
     """Test W&B backend plugin metadata."""
+    from tracelet.backends.wandb_backend import WandbBackend
     from tracelet.core.plugins import PluginType
-    from tracelet.plugins.wandb_backend import WandbBackend
 
     metadata = WandbBackend.get_metadata()
 
@@ -53,7 +53,7 @@ def test_wandb_backend_plugin_metadata():
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_initialization(mock_wandb_run):
     """Test W&B backend initialization."""
-    from tracelet.plugins.wandb_backend import WandbBackend
+    from tracelet.backends.wandb_backend import WandbBackend
 
     backend = WandbBackend()
 
@@ -91,8 +91,8 @@ def test_wandb_backend_initialization(mock_wandb_run):
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_scalar_logging(mock_wandb_run):
     """Test scalar metric logging."""
+    from tracelet.backends.wandb_backend import WandbBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.wandb_backend import WandbBackend
 
     backend = WandbBackend()
     backend.initialize({})
@@ -110,8 +110,8 @@ def test_wandb_backend_scalar_logging(mock_wandb_run):
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_parameter_logging(mock_wandb_run):
     """Test parameter logging."""
+    from tracelet.backends.wandb_backend import WandbBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.wandb_backend import WandbBackend
 
     backend = WandbBackend()
     backend.initialize({})
@@ -131,8 +131,8 @@ def test_wandb_backend_enhanced_visualizations(mock_wandb_run):
     """Test enhanced visualization logging."""
     import numpy as np
 
+    from tracelet.backends.wandb_backend import WandbBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.wandb_backend import WandbBackend
 
     backend = WandbBackend()
     backend.initialize({})
@@ -162,8 +162,8 @@ def test_wandb_backend_enhanced_visualizations(mock_wandb_run):
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_artifact_logging(mock_wandb_run):
     """Test artifact logging."""
+    from tracelet.backends.wandb_backend import WandbBackend
     from tracelet.core.orchestrator import MetricData, MetricType
-    from tracelet.plugins.wandb_backend import WandbBackend
 
     backend = WandbBackend()
     backend.initialize({})
@@ -190,7 +190,7 @@ def test_wandb_backend_artifact_logging(mock_wandb_run):
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_experiment_metadata(mock_wandb_run):
     """Test experiment metadata saving."""
-    from tracelet.plugins.wandb_backend import WandbBackend
+    from tracelet.backends.wandb_backend import WandbBackend
 
     backend = WandbBackend()
     backend.initialize({})
@@ -225,7 +225,7 @@ def test_wandb_backend_experiment_metadata(mock_wandb_run):
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_lifecycle(mock_wandb_run):
     """Test complete backend lifecycle."""
-    from tracelet.plugins.wandb_backend import WandbBackend
+    from tracelet.backends.wandb_backend import WandbBackend
 
     backend = WandbBackend()
 
@@ -250,7 +250,7 @@ def test_wandb_backend_lifecycle(mock_wandb_run):
 @pytest.mark.skipif(not _has_wandb, reason="W&B not installed")
 def test_wandb_backend_batch_operations(mock_wandb_run):
     """Test batch parameter and metric operations."""
-    from tracelet.plugins.wandb_backend import WandbBackend
+    from tracelet.backends.wandb_backend import WandbBackend
 
     backend = WandbBackend()
     backend.initialize({})
@@ -275,8 +275,8 @@ def test_wandb_backend_batch_operations(mock_wandb_run):
 
 def test_wandb_backend_without_wandb():
     """Test W&B backend behavior when W&B is not available."""
-    with patch("tracelet.plugins.wandb_backend._has_wandb", False):
-        from tracelet.plugins.wandb_backend import WandbBackend
+    with patch("tracelet.backends.wandb_backend._has_wandb", False):
+        from tracelet.backends.wandb_backend import WandbBackend
 
         backend = WandbBackend()
 

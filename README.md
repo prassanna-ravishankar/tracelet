@@ -327,11 +327,17 @@ class MyCustomBackend(BackendPlugin):
         self.client.log(name, value, iteration)
 ```
 
-Plugins are automatically discovered from:
+Backends are automatically discovered based on installed dependencies:
 
-- Built-in: `tracelet/plugins/` directory
-- User: `~/.tracelet/plugins/` directory
-- Custom: Set `TRACELET_PLUGIN_PATH` environment variable
+```python
+import tracelet
+
+# Check available backends
+print(tracelet.available_backends())  # ['mlflow', 'wandb', 'clearml']
+
+# Get a specific backend dynamically
+mlflow_backend = tracelet.get_backend('mlflow')
+```
 
 ## Documentation
 

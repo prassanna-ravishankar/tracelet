@@ -13,7 +13,7 @@ from tracelet.core.plugins import PluginManager
 pytest_plugins = []
 
 try:
-    from tracelet.plugins.clearml_backend import ClearMLBackend
+    from tracelet.backends.clearml_backend import ClearMLBackend
 
     _has_clearml = True
 except ImportError:
@@ -21,7 +21,7 @@ except ImportError:
     ClearMLBackend = None
 
 try:
-    from tracelet.plugins.mlflow_backend import MLflowBackend
+    from tracelet.backends.mlflow_backend import MLflowBackend
 
     _has_mlflow = True
 except ImportError:
@@ -244,7 +244,7 @@ class TestBackendPluginIntegration:
 
     def test_plugin_discovery(self):
         """Test that backend plugins can be discovered."""
-        manager = PluginManager([str(Path(__file__).parent.parent.parent / "tracelet" / "plugins")])
+        manager = PluginManager([str(Path(__file__).parent.parent.parent / "tracelet" / "backends")])
 
         discovered = manager.discover_plugins()
 
@@ -313,7 +313,7 @@ class TestBackendPluginIntegration:
 
             plugin_info = PluginInfo(
                 metadata=MLflowBackend.get_metadata(),
-                module_path="tracelet.plugins.mlflow_backend",
+                module_path="tracelet.backends.mlflow_backend",
                 class_name="MLflowBackend",
                 instance=MLflowBackend,
                 state=PluginState.LOADED,

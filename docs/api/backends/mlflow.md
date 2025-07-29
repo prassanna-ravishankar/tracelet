@@ -1,6 +1,6 @@
 # MLflow Backend
 
-::: tracelet.backends.mlflow.MLflowBackend
+::: tracelet.backends.mlflow_backend.MLflowBackend
 options:
 show_source: true
 show_bases: true

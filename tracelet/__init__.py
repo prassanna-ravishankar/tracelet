@@ -4,6 +4,7 @@ Tracelet - A lightweight ML experiment tracker
 
 __version__ = "0.1.0"
 
+from .backends import get_backend
 from .collectors.git import GitCollector
 from .collectors.system import SystemMetricsCollector
 from .core.experiment import Experiment, ExperimentConfig
@@ -11,14 +12,13 @@ from .frameworks.lightning import LightningFramework
 from .frameworks.pytorch import PyTorchFramework
 from .interface import get_active_experiment, start_logging, stop_logging
 
-# Optional imports - check availability
-try:
-    import importlib.util
+# Dynamic import system
+from .utils.imports import get_available_backends, get_available_frameworks, is_available
 
-    spec = importlib.util.find_spec("tracelet.backends.mlflow")
-    _has_mlflow = spec is not None
-except ImportError:
-    _has_mlflow = False
+# Framework availability checks
+_has_mlflow = is_available("mlflow")
+_has_torch = is_available("torch")
+_has_lightning = is_available("pytorch_lightning")
 
 # Check for automagic support
 try:
@@ -40,6 +40,10 @@ __all__ = [
     # Main interface
     "start_logging",
     "stop_logging",
+    # Dynamic backend access
+    "get_backend",
+    "available_backends",
+    "available_frameworks",
 ]
 
 # Add automagic components if available
@@ -52,4 +56,24 @@ if _has_automagic:
     automagic = automagic
     capture_hyperparams = capture_hyperparams
 
-# Note: MLflowBackend is available via backends.mlflow when _has_mlflow is True
+
+# Public API for dynamic imports
+def available_backends():
+    """Get list of available experiment tracking backends.
+
+    Returns:
+        List of backend names that are currently available based on installed packages.
+    """
+    return get_available_backends()
+
+
+def available_frameworks():
+    """Get dictionary of framework availability.
+
+    Returns:
+        Dictionary mapping framework names to their availability status.
+    """
+    return get_available_frameworks()
+
+
+# Note: Backend classes are available dynamically when their dependencies are installed

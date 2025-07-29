@@ -1,20 +1,14 @@
 """MLflow backend plugin for Tracelet."""
 
 import logging
-from typing import Any, Optional
-
-try:
-    import mlflow
-    import mlflow.tracking
-    from mlflow.tracking import MlflowClient
-
-    _has_mlflow = True
-except ImportError:
-    _has_mlflow = False
-    mlflow = MlflowClient = None
+from typing import TYPE_CHECKING, Any, Optional
 
 from tracelet.core.orchestrator import MetricData, MetricType
 from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
+from tracelet.utils.imports import require
+
+if TYPE_CHECKING:
+    from mlflow.tracking import MlflowClient
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +38,8 @@ class MLflowBackend(BackendPlugin):
 
     def initialize(self, config: dict[str, Any]):
         """Initialize MLflow backend."""
-        if not _has_mlflow:
-            raise ImportError("MLflow is not installed. Install with: pip install mlflow")
+        # Use dynamic import system
+        mlflow = require("mlflow", "MLflow backend")
 
         self._config = config
         self._experiment_name = config.get("experiment_name", "Tracelet Experiments")
@@ -57,6 +51,8 @@ class MLflowBackend(BackendPlugin):
             mlflow.set_tracking_uri(tracking_uri)
 
         # Initialize MLflow client
+        from mlflow.tracking import MlflowClient
+
         self._client = MlflowClient()
 
         # Get or create experiment
@@ -83,6 +79,7 @@ class MLflowBackend(BackendPlugin):
             self._run_id = run.info.run_id
 
             # Set active run
+            mlflow = require("mlflow")
             mlflow.start_run(run_id=self._run_id, nested=True)
 
             logger.info(f"Started MLflow run: {self._run_id}")
@@ -97,6 +94,7 @@ class MLflowBackend(BackendPlugin):
         if self._run_id and self._client:
             try:
                 # End the run
+                mlflow = require("mlflow")
                 mlflow.end_run()
                 logger.info(f"Stopped MLflow run: {self._run_id}")
             except Exception:

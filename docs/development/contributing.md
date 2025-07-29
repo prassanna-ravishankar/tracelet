@@ -135,18 +135,18 @@ tracelet/
 │   ├── orchestrator.py   # Metric routing
 │   └── plugins.py        # Plugin system
 ├── backends/             # Backend implementations
-│   ├── mlflow.py
-│   ├── wandb.py
-│   └── clearml.py
+│   ├── mlflow_backend.py
+│   ├── wandb_backend.py
+│   ├── clearml_backend.py
+│   └── aim_backend.py
 ├── frameworks/           # Framework integrations
 │   ├── pytorch.py
 │   └── lightning.py
 ├── collectors/           # Data collectors
 │   ├── git.py
 │   └── system.py
-└── plugins/              # Plugin implementations
-    ├── mlflow_backend.py
-    └── wandb_backend.py
+└── utils/                # Utility modules
+    └── imports.py        # Dynamic import management
 ```
 
 ### Naming Conventions
@@ -307,10 +307,10 @@ class NeptuneBackend(BackendInterface):
 2. **Create Plugin**
 
 ```python
-# tracelet/plugins/neptune_backend.py
+# tracelet/backends/neptune_backend.py
 from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
 
-class NeptuneBackendPlugin(BackendPlugin):
+class NeptuneBackend(BackendPlugin):
     @classmethod
     def get_metadata(cls) -> PluginMetadata:
         return PluginMetadata(
@@ -320,9 +320,9 @@ class NeptuneBackendPlugin(BackendPlugin):
             description="Neptune.ai experiment tracking backend"
         )
 
-    def create_backend(self, config: dict):
-        from tracelet.backends.neptune import NeptuneBackend
-        return NeptuneBackend(config)
+    def initialize(self, config: dict):
+        # Implementation here
+        pass
 ```
 
 3. **Add Tests**
