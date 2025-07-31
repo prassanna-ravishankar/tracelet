@@ -79,7 +79,7 @@ class ImportManager:
 
     def get_available_backends(self) -> list[str]:
         """Get list of available backend frameworks."""
-        backends = ["mlflow", "wandb", "clearml", "aim", "neptune", "tensorboard"]
+        backends = ["mlflow", "wandb", "clearml", "aim", "neptune"]
         return [backend for backend in backends if self.is_available(backend)]
 
     def require(self, framework: str, feature: Optional[str] = None) -> Any:
