@@ -35,7 +35,7 @@ class ImportManager:
             "clearml": "clearml",
             "aim": "aim",
             "neptune": "neptune",
-            "tensorboard": "tensorboardX",
+            "tensorboard": "tensorboard",
             # Utilities
             "pynvml": "pynvml",
             "psutil": "psutil",
@@ -152,7 +152,7 @@ class ImportManager:
             "clearml": "pip install clearml",
             "aim": "pip install aim",
             "neptune": "pip install neptune-client",
-            "tensorboard": "pip install tensorboardX",
+            "tensorboard": "pip install tensorboard",
             "pynvml": "pip install pynvml",
             "GPUtil": "pip install GPUtil",
             "nvidia_ml_py3": "pip install nvidia-ml-py3",
