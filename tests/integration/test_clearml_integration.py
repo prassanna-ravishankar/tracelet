@@ -77,7 +77,7 @@ def test_clearml_backend_initialization(mock_clearml_task):
     call_kwargs = mock_clearml_task["task_class"].init.call_args.kwargs
 
     assert call_kwargs["project_name"] == "Test Project"
-    assert call_kwargs["task_name"] == "test_task"
+    assert call_kwargs["task_name"].startswith("test_task_")  # Now includes timestamp suffix
     assert call_kwargs["task_type"] == "training"
     assert call_kwargs["tags"] == ["test", "integration"]
 
