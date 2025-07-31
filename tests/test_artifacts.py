@@ -17,7 +17,7 @@ class TestTraceletArtifact:
 
     def test_artifact_creation(self):
         """Test basic artifact creation."""
-        artifact = TraceletArtifact(name="test_model", type=ArtifactType.MODEL, description="A test model")
+        artifact = TraceletArtifact(name="test_model", artifact_type=ArtifactType.MODEL, description="A test model")
 
         assert artifact.name == "test_model"
         assert artifact.type == ArtifactType.MODEL
