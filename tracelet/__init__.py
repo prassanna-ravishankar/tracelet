@@ -5,6 +5,9 @@ Tracelet - A lightweight ML experiment tracker
 __version__ = "0.1.0"
 
 from .backends import get_backend
+
+# Artifact system components
+from .core.artifacts import ArtifactType, TraceletArtifact
 from .core.experiment import Experiment, ExperimentConfig
 from .interface import get_active_experiment, start_logging, stop_logging
 
@@ -27,17 +30,20 @@ except ImportError:
     _has_automagic = False
 
 __all__ = [
+    # Artifact system
+    "ArtifactType",
     # Core components
     "Experiment",
     "ExperimentConfig",
+    "TraceletArtifact",
+    "available_backends",
+    "available_frameworks",
     "get_active_experiment",
+    # Dynamic backend access
+    "get_backend",
     # Main interface
     "start_logging",
     "stop_logging",
-    # Dynamic backend access
-    "get_backend",
-    "available_backends",
-    "available_frameworks",
 ]
 
 # Add automagic components if available

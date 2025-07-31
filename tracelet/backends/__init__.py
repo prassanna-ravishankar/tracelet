@@ -85,7 +85,7 @@ except ImportError:
     _has_wandb = False
 
 # Dynamic __all__ export based on available backends
-__all__ = ["get_backend", "available_backends"]
+__all__ = ["available_backends", "get_backend"]
 
 if _has_aim:
     __all__.append("AimBackend")
