@@ -1,147 +1,83 @@
-# 🔮 Tracelet Examples
+# Tracelet Examples & Tutorials
 
-Welcome to the Tracelet examples! This collection demonstrates the evolution from manual experiment tracking to truly automagic instrumentation.
+Welcome to Tracelet examples! These tutorials will help you get started with experiment tracking in just minutes.
 
-## 📁 Example Structure
+## 🚀 Quick Start Path
 
-### 🔧 01. Manual Tracking
+### 1. **First Steps** (`01_manual_tracking/`)
 
-Traditional experiment tracking requiring explicit logging calls.
+Start here if you're new to experiment tracking or want fine-grained control.
 
-- **`01_basic_manual.py`** - Basic manual logging of metrics and parameters
-- **`02_pytorch_manual.py`** - Manual PyTorch model training with explicit tracking
-- **`03_sklearn_manual.py`** - Manual scikit-learn experiment tracking
+- `01_basic_manual.py` - Your first experiment in 10 lines of code
+- `02_pytorch_manual.py` - Track PyTorch training loops manually
 
-### 🔮 02. Automagic Tracking
+### 2. **Automagic Tracking** (`02_automagic_tracking/`) ✨
 
-Zero-code experiment tracking that captures everything automatically.
+The easiest way to add tracking - let Tracelet do the work for you!
 
-- **`01_basic_automagic.py`** - Minimal automagic setup with automatic hyperparameter capture
-- **`02_pytorch_automagic.py`** - PyTorch training with full automagic instrumentation
-- **`03_sklearn_automagic.py`** - Scikit-learn with automatic parameter and model capture
-- **`04_comprehensive_automagic.py`** - Advanced automagic features showcase
+- `01_basic_automagic.py` - See the magic of automatic metric capture
+- `02_pytorch_automagic.py` - PyTorch training with zero tracking code
+- `03_pytorch_lightning_automagic.py` - Lightning + automagic = ❤️
+- `04_comprehensive_automagic.py` - Advanced automagic features
 
-### 🔌 03. Backend Integrations
+### 3. **Backend Integrations** (`03_backend_integrations/`)
 
-Examples showing integration with different ML backends.
+Learn how to use specific backends or compare multiple ones.
 
-- **`mlflow_integration.py`** - MLflow backend integration
-- **`wandb_integration.py`** - Weights & Biases integration
-- **`clearml_integration.py`** - ClearML backend integration
-- **`multi_backend_comparison.py`** - Using multiple backends simultaneously
+- `wandb_integration.py` - Weights & Biases specific features
+- `clearml_integration.py` - ClearML specific features
+- `multi_backend_comparison.py` - Use multiple backends simultaneously
+- `compare_all_backends.py` - See your metrics in W&B, MLflow, and ClearML at once!
 
-### 🚀 04. Advanced Features
+### 4. **Advanced Features** (`04_advanced_features/`)
 
-Advanced Tracelet capabilities and use cases.
+Ready for production? These examples show real-world usage.
 
-- **`e2e_ml_pipeline.py`** - End-to-end ML pipeline with comprehensive tracking
-- **`custom_collectors.py`** - Creating custom data collectors
-- **`plugin_development.py`** - Developing custom plugins
+- `e2e_ml_pipeline.py` - Complete ML pipeline with data versioning
+- `complete_ml_pipeline.py` - Full training pipeline with all features
 
-## 🚀 Quick Start
+### 5. **PyTorch Lightning** (`05_lightning_automagic/`) ⚡
 
-👆 **New to Tracelet?** Check out [`QUICKSTART.md`](./QUICKSTART.md) for a 2-minute guide!
+Special examples for Lightning users - the easiest integration ever!
 
-### 🔮 Automagic Tracking (Recommended)
+- `simple_lightning_example.py` - Add tracking in just 3 lines!
+- `train_model_with_automagic.py` - Complete Lightning training example
 
-```python
-from tracelet import Experiment
+## 🎯 Which Example Should I Start With?
 
-# Define your hyperparameters normally
-learning_rate = 0.001
-batch_size = 32
-epochs = 10
+- **"I have 2 minutes"** → `05_lightning_automagic/simple_lightning_example.py`
+- **"I want to understand the basics"** → `01_manual_tracking/01_basic_manual.py`
+- **"I have existing PyTorch code"** → `02_automagic_tracking/02_pytorch_automagic.py`
+- **"I use PyTorch Lightning"** → `05_lightning_automagic/simple_lightning_example.py`
+- **"I want to compare backends"** → `03_backend_integrations/compare_all_backends.py`
 
-# THE ONLY TRACELET LINE NEEDED!
-experiment = Experiment("my_experiment", automagic=True)
+## 💡 Pro Tips
 
-# Train model normally - everything tracked automatically!
-for epoch in range(epochs):
-    loss = train_epoch()  # Loss automatically captured via hooks!
-    # No manual logging needed!
+1. **Automagic is magic**: If you're starting fresh, use `automagic=True`. It captures metrics automatically!
 
-experiment.end()
-```
+2. **Backend flexibility**: You can use one or multiple backends:
 
-### 📝 Manual Tracking (Full Control)
+   ```python
+   # Single backend
+   exp = Experiment(backend=["wandb"], automagic=True)
 
-```python
-from tracelet import Experiment
-
-# Create experiment
-experiment = Experiment("my_experiment")
-experiment.start()
-
-# Manual logging required
-experiment.log_params({
-    "learning_rate": 0.001,
-    "batch_size": 32,
-    "epochs": 10
-})
-
-# Train model...
-for epoch in range(epochs):
-    loss = train_epoch()
-    experiment.log_metric("loss", loss, epoch)  # Manual logging
-
-experiment.end()
-```
-
-## 🔄 Migration Path
-
-1. **Start with Manual** (`01_manual_tracking/`) - Understand basic concepts
-2. **Try Basic Automagic** (`02_automagic_tracking/01_basic_automagic.py`) - See the magic
-3. **Compare Approaches** - Run equivalent manual vs automagic examples
-4. **Go Full Automagic** - Use comprehensive automagic features
-5. **Integrate Backends** - Connect to your preferred ML platform
-
-## 🎉 Key Benefits of Automagic
-
-| Feature                | Manual Tracking                | 🔮 Automagic Tracking             |
-| ---------------------- | ------------------------------ | --------------------------------- |
-| Hyperparameter Logging | `experiment.log_params({...})` | ✨ **Automatic**                  |
-| Training Metrics       | `experiment.log_metric(...)`   | ✨ **Automatic**                  |
-| Model Architecture     | `experiment.log_artifact(...)` | ✨ **Automatic**                  |
-| System Resources       | Custom collectors needed       | ✨ **Automatic**                  |
-| Framework Integration  | Manual hooks required          | ✨ **Automatic**                  |
-| Code Changes           | Extensive modifications        | **Single line: `automagic=True`** |
-
-## 🚀 Getting Started
-
-1. **Install Tracelet**:
-
-   ```bash
-   uv add tracelet
-   # or
-   pip install tracelet
+   # Multiple backends - see metrics everywhere!
+   exp = Experiment(backend=["wandb", "mlflow", "clearml"], automagic=True)
    ```
 
-2. **See the Difference** (Recommended first step):
+3. **Environment setup**: Create a `.env` file with your API keys:
 
    ```bash
-   # Run side-by-side comparison to see the dramatic difference
-   python examples/comparison_manual_vs_automagic.py
+   WANDB_API_KEY=your_key_here
+   CLEARML_API_KEY=your_key_here
    ```
 
-3. **Try Individual Examples**:
+4. **Quick test**: Most examples use synthetic data so you can run them immediately without downloading datasets.
 
-   ```bash
-   # Manual tracking approach
-   python examples/01_manual_tracking/01_basic_manual.py
+## 📚 Learn More
 
-   # Automagic tracking approach
-   python examples/02_automagic_tracking/01_basic_automagic.py
+- [Tracelet Documentation](https://tracelet.ai/docs)
+- [API Reference](https://tracelet.ai/api)
+- [Discord Community](https://discord.gg/tracelet)
 
-   # See all automagic features
-   python examples/02_automagic_tracking/04_comprehensive_automagic.py
-   ```
-
-4. **Choose your preferred approach** and integrate into your workflow!
-
-## 🎯 Choose Your Path
-
-- **🔧 Manual Control**: Perfect for custom logging needs and fine-grained control
-- **🔮 Automagic Simplicity**: Ideal for rapid prototyping and zero-overhead tracking
-- **🔄 Hybrid Approach**: Combine both for maximum flexibility
-
-Start with automagic for the easiest experience, then add manual logging where needed!
+Happy tracking! 🎉

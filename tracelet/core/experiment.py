@@ -92,11 +92,30 @@ class Experiment(MetricSource):
                             RoutingRule(source_pattern="*", sink_id=backend_instance.get_sink_id())
                         )
                 else:
-                    print(f"Warning: Backend '{backend_name}' not found or could not be initialized.")
+                    # Fallback: Try direct backend initialization
+                    self._initialize_backend_directly(backend_name)
 
         # Initialize automagic instrumentation if enabled
         if self._automagic_enabled:
             self._initialize_automagic()
+
+    def _initialize_backend_directly(self, backend_name: str):
+        """Direct backend initialization as fallback"""
+        from ..backends import get_backend
+
+        backend_class = get_backend(backend_name)
+        if backend_class:
+            try:
+                backend = backend_class()
+                backend.initialize({"project": self.name, "experiment_name": self.name, "tags": self.tags})
+                self._orchestrator.register_sink(backend)
+                self._orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id=backend.get_sink_id()))
+                backend.start()
+                print(f"✓ Backend '{backend_name}' initialized directly")
+            except Exception as e:
+                print(f"Warning: Backend '{backend_name}' not found or could not be initialized. Error: {e}")
+        else:
+            print(f"Warning: Backend '{backend_name}' not found or could not be initialized.")
 
     def start(self):
         """Start the experiment tracking"""

@@ -8,7 +8,7 @@ import pytest
 
 # Test imports
 try:
-    from tracelet.plugins.mlflow_backend import MLflowBackend
+    from tracelet.backends.mlflow_backend import MLflowBackend
 
     _has_mlflow = True
 except ImportError:
@@ -16,7 +16,7 @@ except ImportError:
     MLflowBackend = None
 
 try:
-    from tracelet.plugins.clearml_backend import ClearMLBackend
+    from tracelet.backends.clearml_backend import ClearMLBackend
 
     _has_clearml = True
 except ImportError:
@@ -153,7 +153,7 @@ Model Summary:
                 # Manually register MLflow plugin with class
                 mlflow_info = PluginInfo(
                     metadata=MLflowBackend.get_metadata(),
-                    module_path="tracelet.plugins.mlflow_backend",
+                    module_path="tracelet.backends.mlflow_backend",
                     class_name="MLflowBackend",
                     instance=MLflowBackend,  # Pass the class, not instance
                     state=PluginState.LOADED,  # Set to LOADED since we have class

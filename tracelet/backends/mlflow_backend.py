@@ -1,20 +1,14 @@
 """MLflow backend plugin for Tracelet."""
 
 import logging
-from typing import Any, Optional
-
-try:
-    import mlflow
-    import mlflow.tracking
-    from mlflow.tracking import MlflowClient
-
-    _has_mlflow = True
-except ImportError:
-    _has_mlflow = False
-    mlflow = MlflowClient = None
+from typing import TYPE_CHECKING, Any, Optional
 
 from tracelet.core.orchestrator import MetricData, MetricType
 from tracelet.core.plugins import BackendPlugin, PluginMetadata, PluginType
+from tracelet.utils.imports import require
+
+if TYPE_CHECKING:
+    from mlflow.tracking import MlflowClient
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +38,8 @@ class MLflowBackend(BackendPlugin):
 
     def initialize(self, config: dict[str, Any]):
         """Initialize MLflow backend."""
-        if not _has_mlflow:
-            raise ImportError("MLflow is not installed. Install with: pip install mlflow")
+        # Use dynamic import system
+        mlflow = require("mlflow", "MLflow backend")
 
         self._config = config
         self._experiment_name = config.get("experiment_name", "Tracelet Experiments")
@@ -55,8 +49,25 @@ class MLflowBackend(BackendPlugin):
         tracking_uri = config.get("tracking_uri")
         if tracking_uri:
             mlflow.set_tracking_uri(tracking_uri)
+            self._tracking_uri = tracking_uri
+        else:
+            # Check if we're using Databricks
+            import os
+
+            if os.environ.get("MLFLOW_TRACKING_URI") == "databricks":
+                self._tracking_uri = "databricks"
+            else:
+                self._tracking_uri = mlflow.get_tracking_uri()
+
+        # Handle Databricks experiment naming
+        if self._tracking_uri == "databricks" and not self._experiment_name.startswith("/"):
+            # Try to get user email from environment or use a default
+            user_email = os.environ.get("DATABRICKS_USER_EMAIL", "atemysemicolon@gmail.com")
+            self._experiment_name = f"/Users/{user_email}/{self._experiment_name}"
 
         # Initialize MLflow client
+        from mlflow.tracking import MlflowClient
+
         self._client = MlflowClient()
 
         # Get or create experiment
@@ -83,6 +94,7 @@ class MLflowBackend(BackendPlugin):
             self._run_id = run.info.run_id
 
             # Set active run
+            mlflow = require("mlflow")
             mlflow.start_run(run_id=self._run_id, nested=True)
 
             logger.info(f"Started MLflow run: {self._run_id}")
@@ -97,6 +109,7 @@ class MLflowBackend(BackendPlugin):
         if self._run_id and self._client:
             try:
                 # End the run
+                mlflow = require("mlflow")
                 mlflow.end_run()
                 logger.info(f"Stopped MLflow run: {self._run_id}")
             except Exception:
@@ -145,11 +158,15 @@ class MLflowBackend(BackendPlugin):
         except Exception:
             logger.exception(f"Failed to log metric '{metric.name}' to MLflow")
 
+    def _get_clean_metric_name(self, metric: MetricData, separator: str = ".") -> str:
+        """Get clean metric name without experiment ID prefixes."""
+        if not metric.source or metric.source == "experiment" or metric.source.startswith("experiment_"):
+            return metric.name
+        return f"{metric.source}{separator}{metric.name}"
+
     def _log_scalar_metric(self, metric: MetricData):
         """Log a scalar metric to MLflow."""
-        metric_name = metric.name
-        if metric.source and metric.source != "experiment":
-            metric_name = f"{metric.source}.{metric.name}"
+        metric_name = self._get_clean_metric_name(metric)
 
         self._client.log_metric(
             run_id=self._run_id,
@@ -161,9 +178,7 @@ class MLflowBackend(BackendPlugin):
 
     def _log_parameter(self, metric: MetricData):
         """Log a parameter to MLflow."""
-        param_name = metric.name
-        if metric.source and metric.source != "experiment":
-            param_name = f"{metric.source}.{metric.name}"
+        param_name = self._get_clean_metric_name(metric)
 
         # Convert value to string for MLflow
         param_value = str(metric.value)

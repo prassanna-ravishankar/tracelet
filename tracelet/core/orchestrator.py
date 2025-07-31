@@ -191,7 +191,7 @@ class DataFlowOrchestrator:
 
             logger.info(f"Started {self.num_workers} worker threads")
 
-    def stop(self, timeout: float = 5.0):
+    def stop(self, timeout: float = 10.0):
         """Stop the orchestrator workers"""
         with self._lock:
             if not self.running:
@@ -199,16 +199,35 @@ class DataFlowOrchestrator:
 
             self.running = False
 
+            # First, try to drain the queue to prevent data loss
+            drained_count = 0
+            while not self.metric_queue.empty() and drained_count < 1000:
+                try:
+                    metric = self.metric_queue.get_nowait()
+                    if metric is not None:  # Process non-sentinel values
+                        self._process_metric(metric)
+                        drained_count += 1
+                except queue.Empty:
+                    break
+
+            if drained_count > 0:
+                logger.info(f"Drained {drained_count} pending metrics before shutdown")
+
             # Add sentinel values to wake up workers
             for _ in range(self.num_workers):
                 with suppress(queue.Full):
-                    self.metric_queue.put(None, timeout=timeout / 2)
+                    self.metric_queue.put(None, timeout=1.0)
 
-            # Wait for workers to finish
+            # Wait for workers to finish with individual timeout
+            remaining_timeout = timeout
             for worker in self.workers:
-                worker.join(timeout=timeout)
+                start_time = time.time()
+                worker.join(timeout=min(remaining_timeout, 2.0))
                 if worker.is_alive():
                     logger.warning(f"Worker {worker.name} did not stop gracefully")
+                remaining_timeout -= time.time() - start_time
+                if remaining_timeout <= 0:
+                    break
 
             self.workers.clear()
             logger.info("Stopped all worker threads")

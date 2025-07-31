@@ -4506,10 +4506,6 @@ dependencies = [
     { name = "psutil" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "six" },
-    { name = "torch" },
-    { name = "torchvision" },
-    { name = "wandb" },
 ]
 
 [package.optional-dependencies]
@@ -4569,8 +4565,12 @@ dev = [
     { name = "pynvml" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytorch-lightning" },
     { name = "ruff" },
+    { name = "torch" },
+    { name = "torchvision" },
     { name = "tox-uv" },
+    { name = "wandb" },
 ]
 
 [package.metadata]
@@ -4581,27 +4581,23 @@ requires-dist = [
     { name = "clearml", marker = "extra == 'all'", specifier = ">=1.15.0" },
     { name = "clearml", marker = "extra == 'backends'", specifier = ">=1.15.0" },
     { name = "clearml", marker = "extra == 'clearml'", specifier = ">=1.15.0" },
-    { name = "gitpython", specifier = ">=3.1.0" },
+    { name = "gitpython" },
     { name = "mlflow", marker = "extra == 'all'", specifier = ">=3.1.1" },
     { name = "mlflow", marker = "extra == 'backends'", specifier = ">=3.1.1" },
     { name = "mlflow", marker = "extra == 'mlflow'", specifier = ">=3.1.1" },
-    { name = "psutil", specifier = ">=5.8.0" },
-    { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "pydantic-settings", specifier = ">=2.0.0" },
+    { name = "psutil" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "pytorch-lightning", marker = "extra == 'all'", specifier = ">=2.0.0" },
     { name = "pytorch-lightning", marker = "extra == 'frameworks'", specifier = ">=2.0.0" },
     { name = "pytorch-lightning", marker = "extra == 'lightning'", specifier = ">=2.0.0" },
-    { name = "six", specifier = ">=1.15.0" },
     { name = "tensorboard", marker = "extra == 'all'", specifier = ">=2.15.0" },
     { name = "tensorboard", marker = "extra == 'frameworks'", specifier = ">=2.15.0" },
     { name = "tensorboard", marker = "extra == 'pytorch'", specifier = ">=2.15.0" },
     { name = "tensorboard", marker = "extra == 'tensorboard'", specifier = ">=2.15.0" },
-    { name = "torch", specifier = ">=2.7.1" },
     { name = "torch", marker = "extra == 'all'", specifier = ">=1.13.0" },
     { name = "torch", marker = "extra == 'frameworks'", specifier = ">=1.13.0" },
     { name = "torch", marker = "extra == 'pytorch'", specifier = ">=1.13.0" },
-    { name = "torchvision", specifier = ">=0.22.1" },
-    { name = "wandb", specifier = ">=0.21.0" },
     { name = "wandb", marker = "extra == 'all'", specifier = ">=0.16.0" },
     { name = "wandb", marker = "extra == 'backends'", specifier = ">=0.16.0" },
     { name = "wandb", marker = "extra == 'wandb'", specifier = ">=0.16.0" },
@@ -4621,8 +4617,12 @@ dev = [
     { name = "pynvml", specifier = ">=11.0.0" },
     { name = "pytest", specifier = ">=7.2.0" },
     { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "pytorch-lightning", specifier = ">=2.5.2" },
     { name = "ruff", specifier = ">=0.6.9" },
+    { name = "torch", specifier = ">=2.7.1" },
+    { name = "torchvision", specifier = ">=0.22.1" },
     { name = "tox-uv", specifier = ">=1.11.3" },
+    { name = "wandb", specifier = ">=0.21.0" },
 ]
 
 [[package]]

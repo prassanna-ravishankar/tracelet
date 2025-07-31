@@ -139,6 +139,11 @@ class PluginManager:
         if builtin_path.exists():
             self.plugin_paths.append(str(builtin_path))
 
+        # Built-in backends directory (where backends actually are)
+        backends_path = Path(__file__).parent.parent / "backends"
+        if backends_path.exists():
+            self.plugin_paths.append(str(backends_path))
+
         # User plugins directory
         user_path = Path.home() / ".tracelet" / "plugins"
         if user_path.exists():

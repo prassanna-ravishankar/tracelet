@@ -349,7 +349,7 @@ setup(
     ],
     entry_points={
         "tracelet.plugins": [
-            "custom_backend = my_package.plugins:CustomBackendPlugin",
+            "custom_backend = my_package.backends:CustomBackendPlugin",
             "advanced_system = my_package.collectors:AdvancedSystemCollectorPlugin"
         ]
     }

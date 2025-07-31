@@ -15,7 +15,7 @@ try:
 except ImportError:
     _has_aim = False
 
-from tracelet.backends.aim import AimBackend
+from tracelet.backends.aim_backend import AimBackend
 from tracelet.core.orchestrator import MetricData, MetricType
 
 
@@ -63,7 +63,7 @@ class TestAimBackendIntegration:
 
     def test_aim_backend_initialization_without_aim(self):
         """Test AIM backend initialization when AIM is not available."""
-        with patch("tracelet.backends.aim._has_aim", False):
+        with patch("tracelet.backends.aim_backend._has_aim", False):
             backend = AimBackend()
             config = {"repo_path": tempfile.mkdtemp()}
 
@@ -374,7 +374,7 @@ class TestAimBackendIntegration:
 class TestAimBackendRemote:
     """Tests for AIM backend remote functionality."""
 
-    @patch("tracelet.backends.aim.aim.Repo.from_remote")
+    @patch("tracelet.backends.aim_backend.aim.Repo.from_remote")
     def test_aim_remote_initialization(self, mock_from_remote, aim_backend):
         """Test AIM backend initialization with remote repository."""
         mock_repo = MagicMock()
@@ -388,7 +388,7 @@ class TestAimBackendRemote:
         assert aim_backend._remote_tracking_uri == "http://aim-server:53800"
         assert aim_backend._repo == mock_repo
 
-    @patch("tracelet.backends.aim.aim.Repo.from_remote")
+    @patch("tracelet.backends.aim_backend.aim.Repo.from_remote")
     def test_aim_remote_connection_failure(self, mock_from_remote, aim_backend):
         """Test handling of remote connection failures."""
         mock_from_remote.side_effect = Exception("Connection failed")
