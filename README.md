@@ -91,47 +91,70 @@ pip install tracelet[all]                   # Everything
 
 ## Quick Start
 
-### Basic Usage
+### The Simplest Way - Automagic! ✨
 
 ```python
-import tracelet
-import torch
-from torch.utils.tensorboard import SummaryWriter
+from tracelet import Experiment
 
-# Start experiment tracking with your preferred backend
-tracelet.start_logging(
-    exp_name="my_experiment",
-    project="my_project",
-    backend="mlflow"  # or "clearml", "wandb", "aim"
-)
+# Just 3 lines to add to ANY training code!
+exp = Experiment(name="my_model", backend=["wandb"], automagic=True)
+exp.start()
 
-# Use TensorBoard as usual - metrics are automatically captured
-writer = SummaryWriter()
-for epoch in range(100):
-    loss = train_one_epoch()  # Your training logic
-    writer.add_scalar('Loss/train', loss, epoch)
-    # Metrics are automatically sent to MLflow!
+# Your normal PyTorch training - metrics logged automatically!
+for epoch in range(10):
+    loss = model.train_one_epoch()  # We capture everything!
+    print(f"Loss: {loss}")  # Even prints can be captured!
 
-# Stop tracking when done
-tracelet.stop_logging()
+exp.stop()
 ```
 
-### PyTorch Lightning Integration
+### Manual Tracking
 
 ```python
-import tracelet
+from tracelet import Experiment
+
+# Create an experiment
+experiment = Experiment(
+    name="my_experiment",
+    backend=["mlflow"]  # or ["wandb"], ["clearml"], or multiple!
+)
+experiment.start()
+
+# Log metrics manually
+for epoch in range(10):
+    loss = train_model()
+    experiment.log_metric("loss", loss, epoch)
+    experiment.log_metric("accuracy", accuracy, epoch)
+
+experiment.stop()
+```
+
+### PyTorch Lightning Integration ⚡
+
+```python
+from tracelet import Experiment
 import pytorch_lightning as pl
 
-# Start Tracelet before training
-tracelet.start_logging("lightning_experiment", backend="clearml")
+# Add tracking to ANY Lightning code in 3 lines!
+exp = Experiment(name="lightning_model", backend=["clearml"], automagic=True)
+exp.start()
 
-# Train your model - all Lightning metrics are captured
+# Your existing Lightning code - completely unchanged!
 trainer = pl.Trainer(max_epochs=10)
-trainer.fit(model, datamodule)
+trainer.fit(model, datamodule)  # All self.log() calls tracked automatically!
 
-# Experiment data is automatically tracked!
-tracelet.stop_logging()
+exp.stop()
 ```
+
+### 📚 More Examples
+
+Check out the [examples/](examples/) directory for:
+
+- Simple tutorials for beginners
+- Backend-specific features (W&B, MLflow, ClearML)
+- PyTorch Lightning integration
+- Advanced multi-backend setups
+- Complete ML pipelines
 
 ### 🔮 Automagic Instrumentation
 

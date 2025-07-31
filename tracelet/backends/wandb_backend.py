@@ -101,6 +101,11 @@ class WandbBackend(BackendPlugin):
         """Stop the W&B backend."""
         if self._run:
             try:
+                # Wait a bit for any pending metrics to be processed
+                import time
+
+                time.sleep(1.0)  # Give queue time to drain
+
                 # Finish the run
                 self._run.finish()
                 logger.info(f"Stopped W&B run: {self._run.id}")
@@ -162,14 +167,16 @@ class WandbBackend(BackendPlugin):
         except Exception:
             logger.exception(f"Failed to log metric '{metric.name}' to W&B")
 
+    def _get_clean_metric_name(self, metric: MetricData, separator: str = "_") -> str:
+        """Get clean metric name without experiment ID prefixes."""
+        if not metric.source or metric.source == "experiment" or metric.source.startswith("experiment_"):
+            return metric.name
+        return f"{metric.source}{separator}{metric.name}"
+
     def _log_scalar_metric(self, metric: MetricData):
         """Log a scalar metric to W&B."""
-        log_data = {metric.name: float(metric.value)}
-
-        # Add source prefix if available
-        if metric.source and metric.source != "experiment":
-            log_data = {f"{metric.source}_{metric.name}": float(metric.value)}
-
+        metric_name = self._get_clean_metric_name(metric)
+        log_data = {metric_name: float(metric.value)}
         self._run.log(log_data, step=metric.iteration)
 
     def _log_parameter(self, metric: MetricData):
@@ -177,11 +184,7 @@ class WandbBackend(BackendPlugin):
         if not self._run:
             return
 
-        param_name = metric.name
-        if metric.source and metric.source != "experiment":
-            param_name = f"{metric.source}_{metric.name}"
-
-        # Update run config with parameter
+        param_name = self._get_clean_metric_name(metric)
         self._run.config[param_name] = metric.value
 
     def _log_artifact(self, metric: MetricData):

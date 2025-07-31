@@ -1,5 +1,6 @@
 """ClearML backend plugin for Tracelet."""
 
+import contextlib
 import logging
 from typing import Any, Optional
 
@@ -72,10 +73,14 @@ class ClearMLBackend(BackendPlugin):
             raise RuntimeError(CLEARML_NOT_AVAILABLE_MSG)
 
         try:
-            # Initialize ClearML task
+            # Initialize ClearML task with unique name to avoid reuse
+            import time
+
+            unique_task_name = f"{self._task_name}_{int(time.time() * 1000)}"
+
             self._task = Task.init(
                 project_name=self._project_name,
-                task_name=self._task_name,
+                task_name=unique_task_name,
                 task_type=self._task_type,
                 tags=self._tags,
                 # Don't automatically capture args/environment for cleaner integration
@@ -83,6 +88,8 @@ class ClearMLBackend(BackendPlugin):
                 auto_connect_frameworks=self._config.get(
                     "auto_connect_frameworks", {"matplotlib": False, "tensorboard": False}
                 ),
+                # Force creation of new task
+                reuse_last_task_id=False,
             )
 
             # Get logger for metrics
@@ -159,18 +166,30 @@ class ClearMLBackend(BackendPlugin):
         except Exception:
             logger.exception(f"Failed to log metric '{metric.name}' to ClearML")
 
+    def _get_clean_metric_name(self, metric: MetricData, separator: str = "/") -> tuple[str, str]:
+        """Get clean metric name without experiment ID prefixes."""
+        if not metric.source or metric.source == "experiment" or metric.source.startswith("experiment_"):
+            # Use metric name directly - split if it contains "/"
+            if "/" in metric.name:
+                return metric.name.split("/", 1)
+            else:
+                return "metrics", metric.name
+
+        # Use source as series and metric name as title
+        return metric.source, metric.name
+
     def _log_scalar_metric(self, metric: MetricData):
         """Log a scalar metric to ClearML."""
-        # Extract series and title from metric name
-        if "/" in metric.name:
-            series, title = metric.name.split("/", 1)
-        else:
-            series = metric.source or "metrics"
-            title = metric.name
+        # Extract clean series and title from metric name
+        series, title = self._get_clean_metric_name(metric)
 
         self._logger.report_scalar(
             title=title, series=series, value=float(metric.value), iteration=metric.iteration or 0
         )
+
+        # Force flush to ensure metrics are sent
+        with contextlib.suppress(AttributeError):
+            self._logger.flush()
 
     def _log_parameter(self, metric: MetricData):
         """Log a parameter to ClearML."""
@@ -192,12 +211,12 @@ class ClearMLBackend(BackendPlugin):
 
     def _log_histogram_metric(self, metric: MetricData):
         """Log a histogram metric to ClearML."""
-        # Extract series and title from metric name
-        if "/" in metric.name:
-            series, title = metric.name.split("/", 1)
-        else:
-            series = metric.source or "histograms"
-            title = metric.name
+        # Extract clean series and title from metric name
+        series, title = self._get_clean_metric_name(metric)
+
+        # Fallback to "histograms" if series is "metrics"
+        if series == "metrics":
+            series = "histograms"
 
         # ClearML can handle numpy arrays and torch tensors for histograms
         self._logger.report_histogram(
@@ -212,12 +231,12 @@ class ClearMLBackend(BackendPlugin):
 
     def _log_image_metric(self, metric: MetricData):
         """Log an image metric to ClearML."""
-        # Extract series and title from metric name
-        if "/" in metric.name:
-            series, title = metric.name.split("/", 1)
-        else:
-            series = metric.source or "images"
-            title = metric.name
+        # Extract clean series and title from metric name
+        series, title = self._get_clean_metric_name(metric)
+
+        # Fallback to "images" if series is "metrics"
+        if series == "metrics":
+            series = "images"
 
         # ClearML can handle various image formats including tensors
         self._logger.report_image(title=title, series=series, iteration=metric.iteration or 0, image=metric.value)
@@ -228,12 +247,12 @@ class ClearMLBackend(BackendPlugin):
 
     def _log_figure_metric(self, metric: MetricData):
         """Log a matplotlib figure to ClearML."""
-        # Extract series and title from metric name
-        if "/" in metric.name:
-            series, title = metric.name.split("/", 1)
-        else:
-            series = metric.source or "figures"
-            title = metric.name
+        # Extract clean series and title from metric name
+        series, title = self._get_clean_metric_name(metric)
+
+        # Fallback to "figures" if series is "metrics"
+        if series == "metrics":
+            series = "figures"
 
         # ClearML can directly handle matplotlib figures
         self._logger.report_matplotlib_figure(

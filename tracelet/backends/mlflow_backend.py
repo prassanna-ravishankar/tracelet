@@ -49,6 +49,21 @@ class MLflowBackend(BackendPlugin):
         tracking_uri = config.get("tracking_uri")
         if tracking_uri:
             mlflow.set_tracking_uri(tracking_uri)
+            self._tracking_uri = tracking_uri
+        else:
+            # Check if we're using Databricks
+            import os
+
+            if os.environ.get("MLFLOW_TRACKING_URI") == "databricks":
+                self._tracking_uri = "databricks"
+            else:
+                self._tracking_uri = mlflow.get_tracking_uri()
+
+        # Handle Databricks experiment naming
+        if self._tracking_uri == "databricks" and not self._experiment_name.startswith("/"):
+            # Try to get user email from environment or use a default
+            user_email = os.environ.get("DATABRICKS_USER_EMAIL", "atemysemicolon@gmail.com")
+            self._experiment_name = f"/Users/{user_email}/{self._experiment_name}"
 
         # Initialize MLflow client
         from mlflow.tracking import MlflowClient
@@ -143,11 +158,15 @@ class MLflowBackend(BackendPlugin):
         except Exception:
             logger.exception(f"Failed to log metric '{metric.name}' to MLflow")
 
+    def _get_clean_metric_name(self, metric: MetricData, separator: str = ".") -> str:
+        """Get clean metric name without experiment ID prefixes."""
+        if not metric.source or metric.source == "experiment" or metric.source.startswith("experiment_"):
+            return metric.name
+        return f"{metric.source}{separator}{metric.name}"
+
     def _log_scalar_metric(self, metric: MetricData):
         """Log a scalar metric to MLflow."""
-        metric_name = metric.name
-        if metric.source and metric.source != "experiment":
-            metric_name = f"{metric.source}.{metric.name}"
+        metric_name = self._get_clean_metric_name(metric)
 
         self._client.log_metric(
             run_id=self._run_id,
@@ -159,9 +178,7 @@ class MLflowBackend(BackendPlugin):
 
     def _log_parameter(self, metric: MetricData):
         """Log a parameter to MLflow."""
-        param_name = metric.name
-        if metric.source and metric.source != "experiment":
-            param_name = f"{metric.source}.{metric.name}"
+        param_name = self._get_clean_metric_name(metric)
 
         # Convert value to string for MLflow
         param_value = str(metric.value)

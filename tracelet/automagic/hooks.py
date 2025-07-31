@@ -347,6 +347,58 @@ class XGBoostHook(FrameworkHook):
         self._patch_function("xgboost", "train", train_wrapper)
 
 
+class LightningHook(FrameworkHook):
+    """Hook for PyTorch Lightning automatic instrumentation."""
+
+    def apply_hooks(self) -> None:
+        """Apply Lightning-specific hooks."""
+        self._patch_lightning_log()
+
+    def _patch_lightning_log(self) -> None:
+        """Patch Lightning's self.log() to capture metrics."""
+
+        def log_wrapper(original_log):
+            @functools.wraps(original_log)
+            def wrapped_log(module_self, name: str, value, *args, **kwargs):
+                # Call original logging method
+                result = original_log(module_self, name, value, *args, **kwargs)
+
+                # Get any active experiment for truly automagic logging
+                experiment = self._get_any_active_experiment()
+
+                # Check if value is numeric (int, float, or tensor with item())
+                numeric_value = None
+                try:
+                    if isinstance(value, (int, float)):
+                        numeric_value = float(value)
+                    elif hasattr(value, "item"):  # PyTorch tensor
+                        numeric_value = float(value.item())
+                    elif hasattr(value, "__float__"):  # Other numeric types
+                        numeric_value = float(value)
+                except (ValueError, TypeError):
+                    numeric_value = None
+
+                if experiment and numeric_value is not None:
+                    # Get the current step from trainer if available
+                    current_step = 0
+                    try:
+                        if hasattr(module_self, "trainer") and module_self.trainer:
+                            current_step = getattr(module_self.trainer, "global_step", 0)
+                    except (RuntimeError, AttributeError):
+                        # Lightning module not attached to a trainer yet
+                        current_step = 0
+
+                    # Log to our experiment
+                    experiment.log_metric(name, numeric_value, current_step)
+
+                return result
+
+            return wrapped_log
+
+        # Patch LightningModule.log
+        self._patch_function("pytorch_lightning.core.module", "LightningModule.log", log_wrapper)
+
+
 class FrameworkHookRegistry:
     """Registry for managing framework-specific hooks."""
 
@@ -360,6 +412,7 @@ class FrameworkHookRegistry:
             "pytorch": PyTorchHook,
             "sklearn": SklearnHook,
             "xgboost": XGBoostHook,
+            "lightning": LightningHook,
         }
 
     def is_available(self, framework: str) -> bool:
@@ -370,6 +423,8 @@ class FrameworkHookRegistry:
             return importlib.util.find_spec("sklearn") is not None
         elif framework == "xgboost":
             return importlib.util.find_spec("xgboost") is not None
+        elif framework == "lightning":
+            return importlib.util.find_spec("pytorch_lightning") is not None
         return False
 
     def apply_hooks(self, framework: str, experiment: Experiment) -> None:
