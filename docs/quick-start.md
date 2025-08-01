@@ -117,7 +117,7 @@ aim up
 
 ## Next Steps
 
-- [Configuration Guide](configuration.md) - Customize your setup
+- [Configuration Guide](settings.md) - Customize your setup
 - [Backend Guides](backends/index.md) - Deep dive into each backend
 - [PyTorch Integration](integrations/pytorch.md) - Advanced PyTorch features
 - [Examples](examples/basic.md) - More comprehensive examples

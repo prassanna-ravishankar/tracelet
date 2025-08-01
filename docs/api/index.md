@@ -7,8 +7,8 @@ Complete API documentation for Tracelet's public interfaces.
 ### Core API
 
 - [Main Interface](interface.md) - Primary entry points (`start_logging`, `get_active_experiment`, `stop_logging`)
-- [Experiment](core/experiment.md) - Main experiment management class
-- [Settings](settings.md) - Configuration and settings management
+- [Core Components](core.md) - Core classes and data flow management
+- [Settings](../settings.md) - Configuration and settings management
 
 ### Backends
 
