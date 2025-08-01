@@ -27,11 +27,13 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader, TensorDataset
 
 # 1. Start experiment tracking
-tracelet.start_logging(
-    exp_name="my_first_experiment",
-    project="tracelet_demo",
-    backend="mlflow"  # or "clearml", "wandb", "aim"
+from tracelet import Experiment
+
+exp = Experiment(
+    name="my_first_experiment",
+    backend=["mlflow"]  # or ["clearml"], ["wandb"], ["aim"]
 )
+exp.start()
 
 # 2. Create a simple model and data
 model = nn.Linear(10, 1)
@@ -68,7 +70,6 @@ for epoch in range(50):
     print(f"Epoch {epoch:2d}: Loss = {avg_loss:.4f}")
 
 # 4. Log additional experiment info
-exp = tracelet.get_active_experiment()
 exp.log_params({
     "learning_rate": 0.01,
     "batch_size": 16,
@@ -78,7 +79,7 @@ exp.log_params({
 
 # 5. Clean up
 writer.close()
-tracelet.stop_logging()
+exp.stop()
 
 print("✅ Experiment completed! Check your MLflow UI to see the results.")
 ```
