@@ -355,5 +355,47 @@ class TestArtifactTypes:
             assert artifact_type.value == expected_value
 
 
+class TestBackwardCompatibility:
+    """Test backward compatibility with old artifact API."""
+
+    def test_log_artifact_string_api_without_artifacts_enabled(self):
+        """Test legacy string API when artifacts are disabled."""
+        from tracelet.core.experiment import Experiment, ExperimentConfig
+
+        config = ExperimentConfig(enable_artifacts=False)
+        experiment = Experiment("test", config=config)
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("test content")
+            temp_path = f.name
+
+        try:
+            # Should work with old API and fallback to metric system
+            result = experiment.log_artifact(temp_path, "artifacts/test.txt")
+            assert result == {}  # Should return empty dict for legacy fallback
+        finally:
+            Path(temp_path).unlink()
+            experiment.stop()
+
+    def test_log_artifact_string_api_with_artifacts_enabled(self):
+        """Test legacy string API when artifacts are enabled."""
+        from tracelet.core.experiment import Experiment, ExperimentConfig
+
+        config = ExperimentConfig(enable_artifacts=True)
+        experiment = Experiment("test", config=config, artifacts=True)
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("test content")
+            temp_path = f.name
+
+        try:
+            # Should work with old API and use new artifact system
+            result = experiment.log_artifact(temp_path, "artifacts/test.txt")
+            assert isinstance(result, dict)  # Should return results from backends
+        finally:
+            Path(temp_path).unlink()
+            experiment.stop()
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

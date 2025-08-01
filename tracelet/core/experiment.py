@@ -208,8 +208,44 @@ class Experiment(MetricSource):
             raise RuntimeError("Artifact tracking not enabled. Use artifacts=True when creating experiment.")
         return TraceletArtifact(name, artifact_type, description)
 
-    def log_artifact(self, artifact: TraceletArtifact) -> dict[str, ArtifactResult]:
-        """Log artifact to all backends."""
+    def log_artifact(self, artifact, artifact_path: Optional[str] = None) -> dict[str, ArtifactResult]:
+        """Log artifact to all backends.
+
+        Args:
+            artifact: Either a TraceletArtifact object (new API) or a file path string (legacy API)
+            artifact_path: Only used with legacy string API for backward compatibility
+        """
+        # Handle backward compatibility for string-based API
+        if isinstance(artifact, str):
+            # Legacy API: log_artifact("path/to/file.txt", "artifacts/file.txt")
+            if not self._artifacts_enabled:
+                # Fallback to old behavior for compatibility
+                metric = MetricData(
+                    name=artifact_path or artifact,
+                    value=artifact,
+                    type=MetricType.ARTIFACT,
+                    iteration=None,  # Artifacts don't have iterations
+                    source=self.get_source_id(),
+                    metadata={"artifact_path": artifact_path},
+                )
+                self.emit_metric(metric)
+                return {}
+            else:
+                # Convert to new artifact system
+                from pathlib import Path
+
+                file_path = Path(artifact)
+                artifact_name = artifact_path or file_path.name
+
+                # Try to detect artifact type from file extension
+                artifact_type = self._detect_artifact_type_from_file(file_path)
+
+                tracelet_artifact = TraceletArtifact(artifact_name, artifact_type)
+                tracelet_artifact.add_file(artifact, artifact_path)
+
+                return self._artifact_manager.log_artifact(tracelet_artifact)
+
+        # New API: log_artifact(TraceletArtifact(...))
         if not self._artifacts_enabled:
             raise RuntimeError("Artifact tracking not enabled. Use artifacts=True when creating experiment.")
         if not self._artifact_manager:
