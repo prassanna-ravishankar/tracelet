@@ -1,6 +1,6 @@
-# 🔮 Automagic Instrumentation
+# Automagic Instrumentation
 
-Tracelet's most powerful feature is **automagic instrumentation** - automatic detection and logging of machine learning hyperparameters with zero configuration. Just enable automagic mode and Tracelet intelligently captures your experiment parameters using advanced heuristics.
+Tracelet's automagic instrumentation provides automatic detection and logging of machine learning hyperparameters with zero configuration. Enable automagic mode and Tracelet intelligently captures your experiment parameters using advanced heuristics.
 
 ## Overview
 
@@ -29,7 +29,7 @@ epochs = 100
 dropout = 0.3
 hidden_layers = [256, 128, 64]
 optimizer = "adam"
-# All parameters automatically captured! ✨
+# All parameters automatically captured!
 ```
 
 ## Quick Start
@@ -43,7 +43,7 @@ from tracelet import Experiment
 experiment = Experiment(
     name="automagic_experiment",
     backend=["mlflow"],
-    automagic=True  # ✨ Enable automagic instrumentation
+    automagic=True  # Enable automagic instrumentation
 )
 experiment.start()
 
@@ -196,14 +196,14 @@ Automagic automatically instruments popular ML frameworks:
 Automagic intelligently excludes non-relevant variables:
 
 ```python
-# ❌ Automatically excluded
+# Automatically excluded
 i = 0                     # Loop variables
 model = nn.Sequential()   # Complex objects
 device = "cuda"           # System variables
 tmp_value = 123          # Temporary variables
 _private_var = "test"    # Private variables
 
-# ✅ Automatically included
+# Automatically included
 learning_rate = 0.001    # ML hyperparameter
 batch_size = 64          # Training parameter
 use_attention = True     # Boolean configuration
@@ -353,7 +353,7 @@ Automagic is designed for minimal performance impact:
 4. **Selective enabling**: Disable expensive features if not needed
 
 ```python
-# ✅ Good practice
+# Good practice
 def train_model():
     learning_rate = 0.001  # Clear scope
     batch_size = 64        # Descriptive name
@@ -361,7 +361,7 @@ def train_model():
     experiment = Experiment("training", automagic=True)
     # Automagic captures hyperparameters from this scope
 
-# ❌ Avoid
+# Avoid
 learning_rate = 0.001      # Global scope (harder to detect)
 lr = 0.001                 # Ambiguous name
 ```
@@ -375,11 +375,11 @@ lr = 0.001                 # Ambiguous name
 ```python
 # Check variable scope and naming
 def train():
-    learning_rate = 0.001  # ✅ Function scope
-    lr = 0.001            # ❌ Ambiguous name
+    learning_rate = 0.001  # Function scope
+    lr = 0.001            # Ambiguous name
 
 # Ensure automagic is enabled
-experiment = Experiment("test", automagic=True)  # ✅
+experiment = Experiment("test", automagic=True)  # Correct
 ```
 
 **Framework hooks not working**:
@@ -387,7 +387,7 @@ experiment = Experiment("test", automagic=True)  # ✅
 ```python
 # Import frameworks after starting experiment
 experiment.start()
-import torch  # ✅ Hooks installed after this import
+import torch  # Hooks installed after this import
 
 # Or restart Python session if hooks conflict
 ```
