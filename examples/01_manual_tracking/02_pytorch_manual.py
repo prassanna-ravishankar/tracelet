@@ -157,12 +157,15 @@ def simulate_pytorch_training():
         "training_completed": True,
     })
 
-    # MANUAL: Log model artifacts
+    # MANUAL: Log model artifacts (requires artifacts=True in Experiment)
     print("📁 Manually logging model artifacts...")
-    experiment.log_artifact("best_model.pth", "path/to/best_model.pth")
-    experiment.log_artifact("final_model.pth", "path/to/final_model.pth")
-    experiment.log_artifact("training_history.json", "path/to/history.json")
-    experiment.log_artifact("model_architecture.txt", "path/to/architecture.txt")
+    print("   (i)  Note: Artifact logging requires creating experiment with artifacts=True")
+    print("   (i)  See examples/06_artifacts/basic_artifact_example.py for full artifact API")
+    # Example of new artifact API:
+    # from tracelet.core.artifacts import ArtifactType
+    # artifact = experiment.create_artifact("best_model", ArtifactType.MODEL)
+    # artifact.add_file("best_model.pth", "model/best.pth")
+    # experiment.log_artifact(artifact)
 
     # MANUAL: Log optimizer state
     experiment.log_params({

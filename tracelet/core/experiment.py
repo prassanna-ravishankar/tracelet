@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any, Optional
 if TYPE_CHECKING:
     from ..automagic.core import AutomagicConfig
 
+from .artifact_manager import ArtifactManager
+from .artifacts import ArtifactResult, ArtifactType, TraceletArtifact
 from .orchestrator import DataFlowOrchestrator, MetricData, MetricSource, MetricType, RoutingRule
 from .plugins import PluginManager, PluginState, PluginType
 
@@ -26,6 +28,12 @@ class ExperimentConfig:
     enable_automagic: bool = False
     automagic_frameworks: Optional[set[str]] = None
 
+    # Artifact tracking settings
+    enable_artifacts: bool = False
+    automagic_artifacts: bool = False  # Enable automatic artifact detection
+    artifact_watch_dirs: Optional[list[str]] = None  # Directories to watch for artifacts
+    watch_filesystem: bool = False  # Enable file system watching (resource intensive)
+
 
 class Experiment(MetricSource):
     """Main experiment tracking class that orchestrates all tracking functionality"""
@@ -38,6 +46,8 @@ class Experiment(MetricSource):
         tags: Optional[list[str]] = None,
         automagic: bool = False,  # Enable automagic instrumentation
         automagic_config: Optional["AutomagicConfig"] = None,  # Custom automagic configuration
+        artifacts: bool = False,  # Enable artifact tracking
+        automagic_artifacts: bool = False,  # Enable automatic artifact detection
     ):
         self.name = name
         self.id = str(uuid.uuid4())
@@ -53,6 +63,12 @@ class Experiment(MetricSource):
         self._automagic_enabled = automagic or self.config.enable_automagic
         self._automagic_config = automagic_config
         self._automagic_instrumentor = None
+
+        # Artifact tracking
+        self._artifacts_enabled = artifacts or self.config.enable_artifacts
+        self._automagic_artifacts_enabled = automagic_artifacts or self.config.automagic_artifacts
+        self._artifact_manager: Optional[ArtifactManager] = None
+        self._filesystem_detector = None
 
         # Initialize data flow orchestrator
         self._orchestrator = DataFlowOrchestrator(max_queue_size=10000, num_workers=4)
@@ -99,6 +115,10 @@ class Experiment(MetricSource):
         if self._automagic_enabled:
             self._initialize_automagic()
 
+        # Initialize artifact tracking if enabled
+        if self._artifacts_enabled:
+            self._initialize_artifacts()
+
     def _initialize_backend_directly(self, backend_name: str):
         """Direct backend initialization as fallback"""
         from ..backends import get_backend
@@ -137,6 +157,13 @@ class Experiment(MetricSource):
         if self._automagic_enabled and self._automagic_instrumentor:
             self._automagic_instrumentor.detach_experiment(self.id)
 
+        # Stop file system watching if enabled
+        if self._filesystem_detector:
+            try:
+                self._filesystem_detector.stop_watching()
+            except Exception as e:
+                print(f"Warning: Error stopping filesystem detector: {e}")
+
         # Stop all active plugins
         for plugin_name, plugin_info in self._plugin_manager.plugins.items():
             if plugin_info.state == PluginState.ACTIVE:
@@ -173,17 +200,66 @@ class Experiment(MetricSource):
             )
             self.emit_metric(metric)
 
-    def log_artifact(self, local_path: str, artifact_path: Optional[str] = None):
-        """Log a local file as an artifact"""
-        metric = MetricData(
-            name=artifact_path or local_path,
-            value=local_path,
-            type=MetricType.ARTIFACT,
-            iteration=None,  # Artifacts don't have iterations
-            source=self.get_source_id(),
-            metadata={"artifact_path": artifact_path},
-        )
-        self.emit_metric(metric)
+    def create_artifact(
+        self, name: str, artifact_type: ArtifactType, description: Optional[str] = None
+    ) -> TraceletArtifact:
+        """Create artifact builder for manual logging."""
+        if not self._artifacts_enabled:
+            raise RuntimeError("Artifact tracking not enabled. Use artifacts=True when creating experiment.")
+        return TraceletArtifact(name, artifact_type, description)
+
+    def log_artifact(self, artifact: TraceletArtifact) -> dict[str, ArtifactResult]:
+        """Log artifact to all backends."""
+        if not self._artifacts_enabled:
+            raise RuntimeError("Artifact tracking not enabled. Use artifacts=True when creating experiment.")
+        if not self._artifact_manager:
+            # Try to update backends if manager isn't ready
+            self._update_artifact_backends()
+            if not self._artifact_manager:
+                raise RuntimeError("No artifact backends available. Add backends before logging artifacts.")
+        return self._artifact_manager.log_artifact(artifact)
+
+    def log_file_artifact(self, local_path: str, artifact_path: Optional[str] = None):
+        """Log a local file as an artifact (legacy method for compatibility)."""
+        if not self._artifacts_enabled:
+            # Fallback to old behavior for compatibility
+            metric = MetricData(
+                name=artifact_path or local_path,
+                value=local_path,
+                type=MetricType.ARTIFACT,
+                iteration=None,  # Artifacts don't have iterations
+                source=self.get_source_id(),
+                metadata={"artifact_path": artifact_path},
+            )
+            self.emit_metric(metric)
+        else:
+            # Use new artifact system
+            from pathlib import Path
+
+            path = Path(local_path)
+            artifact_type = self._detect_artifact_type_from_file(path)
+
+            artifact = self.create_artifact(
+                name=path.stem, type=artifact_type, description=f"File artifact: {path.name}"
+            ).add_file(local_path, artifact_path)
+
+            self.log_artifact(artifact)
+
+    def get_artifact(
+        self, name: str, version: str = "latest", backend: Optional[str] = None
+    ) -> Optional[TraceletArtifact]:
+        """Retrieve artifact by name and version."""
+        if not self._artifact_manager:
+            return None
+        return self._artifact_manager.get_artifact(name, version, backend)
+
+    def list_artifacts(
+        self, type_filter: Optional[ArtifactType] = None, backend: Optional[str] = None
+    ) -> list[TraceletArtifact]:
+        """List available artifacts."""
+        if not self._artifact_manager:
+            return []
+        return self._artifact_manager.list_artifacts(type_filter, backend)
 
     def set_iteration(self, iteration: int):
         """Set the current iteration"""
@@ -218,6 +294,126 @@ class Experiment(MetricSource):
         except ImportError:
             print("Warning: Automagic instrumentation not available. Install optional dependencies.")
             self._automagic_enabled = False
+
+    def _initialize_artifacts(self):
+        """Initialize artifact tracking system."""
+        try:
+            # Get active backend instances
+            backend_instances = {}
+
+            for backend_name in self._backends:
+                plugin_instance = self._plugin_manager.get_plugin_instance(backend_name)
+                if plugin_instance:
+                    backend_instances[backend_name] = plugin_instance
+
+            if not backend_instances:
+                print("Warning: No backend instances available for artifact tracking")
+                # Keep artifacts enabled but create empty manager for now
+                self._artifact_manager = None
+            else:
+                # Create artifact manager
+                self._artifact_manager = ArtifactManager(backend_instances)
+
+            # Initialize automagic artifact detection if enabled
+            if self._automagic_artifacts_enabled:
+                self._initialize_automagic_artifacts()
+
+            print(f"✓ Artifact tracking initialized with {len(backend_instances)} backends")
+
+        except ImportError:
+            print("Warning: Artifact system dependencies not available")
+            self._artifacts_enabled = False
+        except Exception as e:
+            print(f"Warning: Failed to initialize artifact tracking: {e}")
+            self._artifacts_enabled = False
+
+    def _update_artifact_backends(self):
+        """Update artifact manager with current backends (for manual backend registration)."""
+        if not self._artifacts_enabled:
+            return
+
+        try:
+            # Get all registered sinks from orchestrator that could be backends
+            backend_instances = {}
+            for _sink_id, sink in self._orchestrator.sinks.items():
+                # Check if sink looks like a backend (has common backend methods)
+                if hasattr(sink, "initialize") and hasattr(sink, "start"):
+                    backend_name = getattr(sink, "__class__", type(sink)).__name__.lower().replace("backend", "")
+                    backend_instances[backend_name] = sink
+
+            if backend_instances:
+                # Update the artifact manager with new backends
+                self._artifact_manager = ArtifactManager(backend_instances)
+                print(f"✓ Updated artifact tracking with {len(backend_instances)} backends")
+
+        except Exception as e:
+            print(f"Warning: Failed to update artifact backends: {e}")
+
+    def _initialize_automagic_artifacts(self):
+        """Initialize automatic artifact detection."""
+        try:
+            # Framework hooks for automatic artifact detection
+            if self._is_framework_available("pytorch_lightning"):
+                from ..automagic.artifact_hooks import LightningArtifactHook
+
+                hook = LightningArtifactHook(self._artifact_manager)
+                hook.apply_hook()
+                print("✓ Lightning artifact auto-detection enabled")
+
+            # File system watching (optional, resource intensive)
+            if self.config.watch_filesystem:
+                watch_dirs = self.config.artifact_watch_dirs or ["./checkpoints", "./outputs", "./artifacts"]
+                from ..automagic.filesystem_detector import FileSystemArtifactDetector
+
+                self._filesystem_detector = FileSystemArtifactDetector(self._artifact_manager, watch_dirs)
+                self._filesystem_detector.start_watching()
+                print(f"✓ File system artifact detection enabled for: {watch_dirs}")
+
+        except ImportError as e:
+            print(f"Warning: Automagic artifact detection not available: {e}")
+        except Exception as e:
+            print(f"Warning: Failed to initialize automagic artifacts: {e}")
+
+    def _is_framework_available(self, framework: str) -> bool:
+        """Check if a framework is available."""
+        import importlib.util
+
+        if framework == "pytorch_lightning":
+            return importlib.util.find_spec("pytorch_lightning") is not None
+        elif framework == "pytorch":
+            return importlib.util.find_spec("torch") is not None
+        elif framework == "sklearn":
+            return importlib.util.find_spec("sklearn") is not None
+        elif framework == "transformers":
+            return importlib.util.find_spec("transformers") is not None
+        return False
+
+    def _detect_artifact_type_from_file(self, file_path) -> ArtifactType:
+        """Detect artifact type from file extension/name."""
+        from pathlib import Path
+
+        path = Path(file_path)
+        suffix = path.suffix.lower()
+        name = path.name.lower()
+
+        if suffix in [".pth", ".pt", ".ckpt"]:
+            return ArtifactType.CHECKPOINT if "checkpoint" in name else ArtifactType.MODEL
+        elif suffix in [".pkl", ".pickle"]:
+            return ArtifactType.MODEL
+        elif suffix in [".png", ".jpg", ".jpeg", ".gif", ".bmp"]:
+            return ArtifactType.IMAGE
+        elif suffix in [".wav", ".mp3", ".flac", ".ogg"]:
+            return ArtifactType.AUDIO
+        elif suffix in [".mp4", ".avi", ".mov", ".mkv"]:
+            return ArtifactType.VIDEO
+        elif suffix in [".yaml", ".yml", ".json", ".toml"]:
+            return ArtifactType.CONFIG
+        elif suffix in [".html", ".pdf", ".md"]:
+            return ArtifactType.REPORT
+        elif suffix in [".py", ".js", ".cpp", ".java"]:
+            return ArtifactType.CODE
+        else:
+            return ArtifactType.CUSTOM
 
     def capture_hyperparams(self) -> dict[str, Any]:
         """Capture hyperparameters from calling context using automagic instrumentation."""

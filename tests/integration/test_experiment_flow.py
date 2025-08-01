@@ -39,7 +39,9 @@ class TestExperimentTrackingFlow:
 
             # For this test, we'll manually set up the backend
             # In practice, this would be done via configuration
-            experiment = Experiment(name="Complete MLflow Test", config=config, tags=["integration_test", "mlflow"])
+            experiment = Experiment(
+                name="Complete MLflow Test", config=config, tags=["integration_test", "mlflow"], artifacts=True
+            )
 
             # Manually add MLflow backend to plugin manager
             backend = MLflowBackend()
@@ -58,6 +60,9 @@ class TestExperimentTrackingFlow:
             from tracelet.core.orchestrator import RoutingRule
 
             experiment._orchestrator.add_routing_rule(RoutingRule(source_pattern="*", sink_id=backend.get_sink_id()))
+
+            # Update artifact manager with manually added backend
+            experiment._update_artifact_backends()
 
             # Start experiment and backend
             backend.start()
@@ -100,7 +105,12 @@ Model Summary:
 - Training Time: 2.5 hours
                 """)
 
-                experiment.log_artifact(str(artifact_file), "model/summary.txt")
+                # Create and log artifact using new API
+                from tracelet.core.artifacts import ArtifactType, TraceletArtifact
+
+                artifact = TraceletArtifact("model_summary", ArtifactType.REPORT, "Training summary report")
+                artifact.add_file(str(artifact_file), "model/summary.txt")
+                experiment.log_artifact(artifact)
 
                 # Wait for processing
                 time.sleep(1.0)

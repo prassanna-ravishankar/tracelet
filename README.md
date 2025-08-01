@@ -29,6 +29,14 @@ Tracelet is an intelligent experiment tracking library that automatically captur
 - 📊 System metrics monitoring (CPU, Memory, GPU support planned)
 - 📝 Automatic Git repository and environment tracking
 
+### 🎯 Unified Artifact System
+
+- 📦 **Universal Artifact API** - Models, checkpoints, images, audio, datasets, reports
+- 🧠 **Intelligent Platform Routing** - Automatically routes artifacts to optimal backends
+- ⚡ **Framework Integration** - Auto-capture Lightning checkpoints and validation samples
+- 🗂️ **Flexible Storage** - Files, objects, external references, and metadata
+- 🎨 **Rich Media Support** - Images, audio, video with automatic visualization
+
 ### 🎯 Production-Ready Backends
 
 - **MLflow** - Local and remote server support with full experiment tracking
@@ -146,6 +154,61 @@ trainer.fit(model, datamodule)  # All self.log() calls tracked automatically!
 exp.stop()
 ```
 
+### 🎯 Artifact Tracking
+
+Tracelet's unified artifact system handles models, checkpoints, images, datasets, and more across all backends:
+
+```python
+from tracelet import Experiment
+from tracelet.core.artifacts import ArtifactType
+
+# Enable artifact tracking
+exp = Experiment(
+    name="model_training",
+    backend=["mlflow", "wandb"],
+    artifacts=True,  # Enable artifact system
+    automagic_artifacts=True  # Auto-capture Lightning checkpoints
+)
+exp.start()
+
+# 1. Log a trained model
+model_artifact = exp.create_artifact(
+    name="classifier",
+    artifact_type=ArtifactType.MODEL,
+    description="Trained image classifier"
+)
+model_artifact.add_file("model.pth", "model/classifier.pth")
+model_artifact.add_model(pytorch_model, framework="pytorch")
+exp.log_artifact(model_artifact)
+
+# 2. Log prediction samples
+image_artifact = exp.create_artifact(
+    name="predictions",
+    artifact_type=ArtifactType.IMAGE
+).add_file("sample.png", "samples/prediction.png")
+exp.log_artifact(image_artifact)
+
+# 3. Log external dataset reference
+dataset_artifact = exp.create_artifact(
+    name="training_data",
+    artifact_type=ArtifactType.DATASET
+).add_reference(
+    "s3://bucket/dataset.tar.gz",
+    size_bytes=5_000_000_000  # 5GB dataset
+)
+exp.log_artifact(dataset_artifact)
+
+exp.stop()
+```
+
+**Key Features:**
+
+- **13 artifact types**: MODEL, CHECKPOINT, IMAGE, AUDIO, VIDEO, DATASET, etc.
+- **Intelligent routing**: Models → MLflow, Media → W&B, optimized per backend
+- **Large file handling**: External references for files >100MB
+- **Rich metadata**: Framework info, performance metrics, descriptions
+- **Auto-detection**: Lightning checkpoints captured automatically
+
 ### 📚 More Examples
 
 Check out the [examples/](examples/) directory for:
@@ -153,6 +216,7 @@ Check out the [examples/](examples/) directory for:
 - Simple tutorials for beginners
 - Backend-specific features (W&B, MLflow, ClearML)
 - PyTorch Lightning integration
+- **Artifact tracking examples** (examples/06_artifacts/)
 - Advanced multi-backend setups
 - Complete ML pipelines
 
@@ -270,6 +334,12 @@ experiment = tracelet.start_logging(
         "track_env": True,                 # Environment capture
         "track_tensorboard": True,         # Auto-capture TB metrics
         "track_lightning": True,           # PyTorch Lightning support
+
+        # Artifact tracking settings
+        "enable_artifacts": True,          # Enable artifact system
+        "automagic_artifacts": True,       # Auto-capture framework artifacts
+        "watch_filesystem": False,         # File system watching (resource intensive)
+        "artifact_watch_dirs": ["./checkpoints", "./outputs"]  # Directories to watch
     },
     automagic=True                         # Enable automagic instrumentation
 )
@@ -305,7 +375,13 @@ settings = TraceletSettings(
     track_git=True,                     # Git repository info
     track_env=True,                     # Environment capture
     enable_automagic=True,              # Enable automagic instrumentation
-    automagic_frameworks={"pytorch", "sklearn", "xgboost"}  # Frameworks to instrument
+    automagic_frameworks={"pytorch", "sklearn", "xgboost"},  # Frameworks to instrument
+
+    # Artifact tracking settings
+    enable_artifacts=True,              # Enable artifact system
+    automagic_artifacts=True,           # Auto-capture framework artifacts
+    watch_filesystem=False,             # File system watching
+    artifact_watch_dirs=["./checkpoints", "./outputs"]  # Watch directories
 )
 ```
 
@@ -323,6 +399,10 @@ Key environment variables:
 - `TRACELET_TRACK_ENV`: Enable environment capture
 - `TRACELET_ENABLE_AUTOMAGIC`: Enable automagic instrumentation
 - `TRACELET_AUTOMAGIC_FRAMEWORKS`: Comma-separated frameworks ("pytorch,sklearn")
+- `TRACELET_ENABLE_ARTIFACTS`: Enable artifact tracking system
+- `TRACELET_AUTOMAGIC_ARTIFACTS`: Enable automatic artifact detection
+- `TRACELET_WATCH_FILESYSTEM`: Enable file system watching for artifacts
+- `TRACELET_ARTIFACT_WATCH_DIRS`: Comma-separated watch directories
 
 ## Plugin Development
 
@@ -435,6 +515,7 @@ experiment = tracelet.start_logging(
 ## Roadmap
 
 - [x] 🔮 **Automagic Instrumentation** - Zero-config hyperparameter detection
+- [x] 🎯 **Unified Artifact System** - Models, checkpoints, media, datasets with intelligent routing
 - [ ] AWS SageMaker integration
 - [ ] Prometheus metrics export
 - [ ] Real-time metric streaming
@@ -442,6 +523,8 @@ experiment = tracelet.start_logging(
 - [ ] Distributed training support
 - [ ] Enhanced automagic model architecture capture
 - [ ] Automagic dataset profiling and statistics
+- [ ] Artifact versioning and lineage tracking
+- [ ] Cross-platform artifact synchronization
 
 ## Contributing
 
