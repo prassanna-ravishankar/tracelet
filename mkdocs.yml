@@ -12,8 +12,10 @@ nav:
   - Getting Started:
       - Installation: installation.md
       - Quick Start: quick-start.md
-      - Configuration: configuration.md
-  - Automagic Instrumentation: automagic.md
+      - Configuration: settings.md
+  - Core Features:
+      - Automagic Instrumentation: automagic.md
+      - Artifact Management: artifacts.md
   - Backends:
       - Overview: backends/index.md
       - MLflow: backends/mlflow.md
@@ -35,9 +37,7 @@ nav:
       - Core API: api/core.md
       - Main Interface: api/interface.md
       - Core Components:
-          - Experiment: api/core/experiment.md
           - Plugin System: api/core/plugins.md
-      - Settings: api/settings.md
       - Backends:
           - MLflow: api/backends/mlflow.md
       - Frameworks:
@@ -52,6 +52,7 @@ nav:
   - Development:
       - Contributing: development/contributing.md
       - Architecture: development/architecture.md
+      - Plugin Development: development/plugin-development.md
 plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'

@@ -32,12 +32,12 @@
 
 Tracelet is a powerful Python library that automatically captures and logs your machine learning experiments without requiring code modifications. Simply add one line to start tracking, and Tracelet will:
 
-- 🔮 **Automagic instrumentation** - Zero-config hyperparameter detection and logging
-- 🔍 **Automatically capture** TensorBoard metrics, PyTorch Lightning logs, and system metrics
-- 🔄 **Route to multiple backends** simultaneously (MLflow, ClearML, W&B, AIM)
-- 📊 **Track everything** - scalars, histograms, images, audio, text, and artifacts
-- ⚡ **Zero code changes** required for existing TensorBoard workflows
-- 🎯 **Plugin architecture** for extensible functionality
+- **Automagic instrumentation** - Zero-config hyperparameter detection and logging
+- **Automatically capture** TensorBoard metrics, PyTorch Lightning logs, and system metrics
+- **Route to multiple backends** simultaneously (MLflow, ClearML, W&B, AIM)
+- **Track everything** - scalars, histograms, images, audio, text, and artifacts
+- **Zero code changes** required for existing TensorBoard workflows
+- **Plugin architecture** for extensible functionality
 
 ## Quick Start
 
@@ -101,7 +101,7 @@ Your existing TensorBoard code now logs to MLflow, ClearML, W&B, or AIM with zer
 
 ## Key Features
 
-### 🔌 Multi-Backend Support
+### Multi-Backend Support
 
 Choose from 4 popular experiment tracking backends:
 
@@ -110,7 +110,7 @@ Choose from 4 popular experiment tracking backends:
 - **[Weights & Biases](backends/wandb.md)** - Collaborative ML platform
 - **[AIM](backends/aim.md)** - Open source experiment tracking
 
-### 🎯 Automatic Instrumentation
+### Automatic Instrumentation
 
 Tracelet automatically captures:
 
@@ -120,7 +120,17 @@ Tracelet automatically captures:
 - **Git information** - Repository state, commit hash, branch
 - **Environment** - Python version, package versions, hardware info
 
-### 📊 Rich Data Types
+### Unified Artifact System
+
+Log and manage ML artifacts with intelligent routing:
+
+- **Universal API** - Models, checkpoints, images, audio, datasets, reports
+- **Intelligent routing** - Automatically routes to optimal backends
+- **Framework integration** - Auto-capture Lightning checkpoints
+- **Large file support** - External references for files >100MB
+- **Rich metadata** - Comprehensive artifact descriptions
+
+### Rich Data Types
 
 Log and visualize various data types:
 
@@ -131,7 +141,7 @@ Log and visualize various data types:
 - **Text** - Training summaries, generated text
 - **Artifacts** - Models, datasets, configuration files
 
-### ⚡ Performance Optimized
+### Performance Optimized
 
 - **Thread-safe** orchestrator for concurrent logging
 - **Batched operations** to minimize overhead
@@ -165,7 +175,7 @@ graph TB
 
 ## Why Tracelet?
 
-### Before Tracelet 😤
+### Before Tracelet
 
 ```python
 # Different APIs for each backend
@@ -184,7 +194,7 @@ wandb.init(project="my-project")
 task = Task.init(project_name="my-project")
 ```
 
-### With Tracelet 🎉
+### With Tracelet
 
 ```python
 # One API, any backend
@@ -215,6 +225,12 @@ writer.add_scalar("loss", loss)  # Works everywhere!
   ***
 
   Complete API documentation with examples and type hints
+
+- :material-package: **[Artifact System](artifacts.md)**
+
+  ***
+
+  Unified artifact management for models, data, and media files
 
 - :material-book-open: **[Examples](examples/basic.md)**
 
