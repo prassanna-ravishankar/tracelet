@@ -69,7 +69,7 @@ def demo_basic_artifacts():
     # Create experiment with artifact tracking enabled
     exp = Experiment(
         name=f"artifact_demo_{int(time.time())}",
-        backend=["wandb", "mlflow"],  # Multiple backends
+        backend=["mlflow"],  # Use MLflow only for reliable demo
         artifacts=True,  # Enable artifact tracking
         tags=["demo", "artifacts"],
     )
@@ -85,20 +85,20 @@ def demo_basic_artifacts():
         # 1. Log a model artifact
         print("\n1. Logging model artifact...")
         model_artifact = exp.create_artifact(
-            name="trained_classifier", type=ArtifactType.MODEL, description="Trained image classifier model"
+            name="trained_classifier", artifact_type=ArtifactType.MODEL, description="Trained image classifier model"
         )
 
         # Add model file and metadata
         model_artifact.add_file(str(files["model"]), "model/classifier.pth")
         model_artifact.add_file(str(files["config"]), "model/config.yaml")
 
-        # Add model object (mock)
-        class MockModel:
-            def __init__(self):
-                self.layers = ["conv1", "conv2", "fc1", "fc2"]
-
-        mock_model = MockModel()
-        model_artifact.add_model(mock_model, framework="pytorch", description="CNN classifier architecture")
+        # Add model metadata (skip actual model object for demo)
+        model_artifact.metadata.update({
+            "framework": "pytorch",
+            "architecture": "CNN",
+            "layers": ["conv1", "conv2", "fc1", "fc2"],
+            "parameters": 125000000,
+        })
 
         # Log to all backends
         results = exp.log_artifact(model_artifact)
@@ -107,7 +107,9 @@ def demo_basic_artifacts():
         # 2. Log an image artifact
         print("\n2. Logging image artifact...")
         image_artifact = exp.create_artifact(
-            name="prediction_sample", type=ArtifactType.IMAGE, description="Sample model prediction visualization"
+            name="prediction_sample",
+            artifact_type=ArtifactType.IMAGE,
+            description="Sample model prediction visualization",
         ).add_file(str(files["image"]), "samples/prediction.png")
 
         # Add image metadata
@@ -124,7 +126,9 @@ def demo_basic_artifacts():
         # 3. Log a report artifact
         print("\n3. Logging report artifact...")
         report_artifact = exp.create_artifact(
-            name="training_summary", type=ArtifactType.REPORT, description="Comprehensive training results and metrics"
+            name="training_summary",
+            artifact_type=ArtifactType.REPORT,
+            description="Comprehensive training results and metrics",
         ).add_file(str(files["report"]), "reports/summary.html")
 
         # Add training summary as object
@@ -143,12 +147,12 @@ def demo_basic_artifacts():
         # 4. Log external dataset reference
         print("\n4. Logging dataset reference...")
         dataset_artifact = exp.create_artifact(
-            name="training_data", type=ArtifactType.DATASET, description="ImageNet training subset"
+            name="training_data", artifact_type=ArtifactType.DATASET, description="ImageNet training subset"
         )
 
-        # Add external reference (fake S3 URL)
+        # Add external reference (use http URL to avoid S3 dependency)
         dataset_artifact.add_reference(
-            "s3://my-datasets/imagenet-subset.tar.gz",
+            "https://example.com/datasets/imagenet-subset.tar.gz",
             size_bytes=5 * 1024 * 1024 * 1024,  # 5GB
             description="Compressed training images",
         )

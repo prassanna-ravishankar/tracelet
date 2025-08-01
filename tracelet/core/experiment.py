@@ -208,48 +208,15 @@ class Experiment(MetricSource):
             raise RuntimeError("Artifact tracking not enabled. Use artifacts=True when creating experiment.")
         return TraceletArtifact(name, artifact_type, description)
 
-    def log_artifact(self, artifact, artifact_path: Optional[str] = None) -> dict[str, ArtifactResult]:
-        """Log artifact to all backends.
-
-        Args:
-            artifact: Either a TraceletArtifact object (new API) or a file path string (legacy API)
-            artifact_path: Only used with legacy string API for backward compatibility
-        """
-        # Handle backward compatibility for string-based API
-        if isinstance(artifact, str):
-            # Legacy API: log_artifact("path/to/file.txt", "artifacts/file.txt")
-            if not self._artifacts_enabled:
-                # Fallback to old behavior for compatibility
-                metric = MetricData(
-                    name=artifact_path or artifact,
-                    value=artifact,
-                    type=MetricType.ARTIFACT,
-                    iteration=None,  # Artifacts don't have iterations
-                    source=self.get_source_id(),
-                    metadata={"artifact_path": artifact_path},
-                )
-                self.emit_metric(metric)
-                return {}
-            else:
-                # Convert to new artifact system
-                from pathlib import Path
-
-                file_path = Path(artifact)
-                artifact_name = artifact_path or file_path.name
-
-                # Try to detect artifact type from file extension
-                artifact_type = self._detect_artifact_type_from_file(file_path)
-
-                tracelet_artifact = TraceletArtifact(artifact_name, artifact_type)
-                tracelet_artifact.add_file(artifact, artifact_path)
-
-                return self._artifact_manager.log_artifact(tracelet_artifact)
-
-        # New API: log_artifact(TraceletArtifact(...))
+    def log_artifact(self, artifact: TraceletArtifact) -> dict[str, ArtifactResult]:
+        """Log artifact to all backends."""
         if not self._artifacts_enabled:
             raise RuntimeError("Artifact tracking not enabled. Use artifacts=True when creating experiment.")
         if not self._artifact_manager:
-            raise RuntimeError("Artifact manager not initialized")
+            # Try to update backends if manager isn't ready
+            self._update_artifact_backends()
+            if not self._artifact_manager:
+                raise RuntimeError("No artifact backends available. Add backends before logging artifacts.")
         return self._artifact_manager.log_artifact(artifact)
 
     def log_file_artifact(self, local_path: str, artifact_path: Optional[str] = None):
@@ -341,11 +308,11 @@ class Experiment(MetricSource):
 
             if not backend_instances:
                 print("Warning: No backend instances available for artifact tracking")
-                self._artifacts_enabled = False
-                return
-
-            # Create artifact manager
-            self._artifact_manager = ArtifactManager(backend_instances)
+                # Keep artifacts enabled but create empty manager for now
+                self._artifact_manager = None
+            else:
+                # Create artifact manager
+                self._artifact_manager = ArtifactManager(backend_instances)
 
             # Initialize automagic artifact detection if enabled
             if self._automagic_artifacts_enabled:
@@ -353,9 +320,34 @@ class Experiment(MetricSource):
 
             print(f"✓ Artifact tracking initialized with {len(backend_instances)} backends")
 
+        except ImportError:
+            print("Warning: Artifact system dependencies not available")
+            self._artifacts_enabled = False
         except Exception as e:
             print(f"Warning: Failed to initialize artifact tracking: {e}")
             self._artifacts_enabled = False
+
+    def _update_artifact_backends(self):
+        """Update artifact manager with current backends (for manual backend registration)."""
+        if not self._artifacts_enabled:
+            return
+
+        try:
+            # Get all registered sinks from orchestrator that could be backends
+            backend_instances = {}
+            for _sink_id, sink in self._orchestrator.sinks.items():
+                # Check if sink looks like a backend (has common backend methods)
+                if hasattr(sink, "initialize") and hasattr(sink, "start"):
+                    backend_name = getattr(sink, "__class__", type(sink)).__name__.lower().replace("backend", "")
+                    backend_instances[backend_name] = sink
+
+            if backend_instances:
+                # Update the artifact manager with new backends
+                self._artifact_manager = ArtifactManager(backend_instances)
+                print(f"✓ Updated artifact tracking with {len(backend_instances)} backends")
+
+        except Exception as e:
+            print(f"Warning: Failed to update artifact backends: {e}")
 
     def _initialize_automagic_artifacts(self):
         """Initialize automatic artifact detection."""
