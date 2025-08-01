@@ -93,11 +93,9 @@ class ArtifactFileHandler(FileSystemEventHandler):
             if str(file_path) in self.processed_files:
                 return
 
-            # Wait a moment for file to be fully written
-            time.sleep(0.5)
-
-            # Check if file still exists and is readable
-            if not file_path.exists() or not file_path.is_file():
+            # Wait for file to be fully written with stability check
+            if not self._wait_for_file_stability(file_path):
+                logger.debug(f"File not stable or accessible, skipping: {file_path}")
                 return
 
             artifact_type = self._detect_artifact_type(file_path)
@@ -127,6 +125,51 @@ class ArtifactFileHandler(FileSystemEventHandler):
 
         except Exception as e:
             logger.debug(f"Error processing file creation event: {e}")
+
+    def _wait_for_file_stability(
+        self, file_path: Path, max_wait_time: float = 5.0, check_interval: float = 0.1
+    ) -> bool:
+        """Wait for file to be fully written by checking size stability."""
+        if not file_path.exists() or not file_path.is_file():
+            return False
+
+        try:
+            start_time = time.time()
+            last_size = -1
+            stable_count = 0
+            required_stable_checks = 3  # File size must be stable for 3 consecutive checks
+
+            while time.time() - start_time < max_wait_time:
+                try:
+                    current_size = file_path.stat().st_size
+
+                    if current_size == last_size:
+                        stable_count += 1
+                        if stable_count >= required_stable_checks:
+                            # Additional check: try to open file to ensure it's not locked
+                            try:
+                                with open(file_path, "rb") as f:
+                                    f.read(1)  # Try to read one byte
+                                return True
+                            except OSError:
+                                # File might still be locked, continue waiting
+                                pass
+                    else:
+                        stable_count = 0
+                        last_size = current_size
+
+                    time.sleep(check_interval)
+
+                except (FileNotFoundError, OSError):
+                    # File might have been deleted or moved
+                    return False
+
+            logger.debug(f"File stability timeout reached for {file_path}")
+            return False
+
+        except Exception as e:
+            logger.debug(f"Error checking file stability for {file_path}: {e}")
+            return False
 
     def on_modified(self, event):
         """Handle file modification events."""

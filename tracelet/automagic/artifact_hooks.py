@@ -457,7 +457,11 @@ class LightningArtifactHook(FrameworkHook):
                 return x, y
             else:
                 return batch, None
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Failed to unpack batch data for artifact logging: {e}")
+            logger.debug(
+                f"Batch type: {type(batch)}, batch structure: {batch if hasattr(batch, '__dict__') else 'complex structure'}"
+            )
             return None, None
 
 
