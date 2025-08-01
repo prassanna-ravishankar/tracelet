@@ -1,6 +1,6 @@
 [project]
 name = "tracelet"
-version = "0.0.1"
+version = "0.0.8"
 description = "Tracelet is an automagic pytorch metric exporter"
 authors = [{ name = "Prassanna Ravishankar", email = "me@prassanna.io" }]
 readme = "README.md"
