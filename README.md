@@ -1,8 +1,20 @@
 # Tracelet
 
-[![Release](https://img.shields.io/github/v/release/prassanna-ravishankar/tracelet)](https://github.com/prassanna-ravishankar/tracelet/releases)
-[![Build](https://img.shields.io/github/actions/workflow/status/prassanna-ravishankar/tracelet/main.yml?branch=main)](https://github.com/prassanna-ravishankar/tracelet/actions)
-[![License](https://img.shields.io/github/license/prassanna-ravishankar/tracelet)](https://github.com/prassanna-ravishankar/tracelet/blob/main/LICENSE)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/prassanna-ravishankar/tracelet/main/docs/tracelet.webp" alt="Tracelet Logo" width="200">
+</p>
+
+<p align="center">
+  <a href="https://github.com/prassanna-ravishankar/tracelet/releases">
+    <img src="https://img.shields.io/github/v/release/prassanna-ravishankar/tracelet" alt="Release">
+  </a>
+  <a href="https://github.com/prassanna-ravishankar/tracelet/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/prassanna-ravishankar/tracelet/main.yml?branch=main" alt="Build">
+  </a>
+  <a href="https://github.com/prassanna-ravishankar/tracelet/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/prassanna-ravishankar/tracelet" alt="License">
+  </a>
+</p>
 
 Tracelet is a Python library for tracking machine learning experiments. It works with popular backends like MLflow, Weights & Biases, ClearML, and AIM, and can automatically detect hyperparameters from your code.
 
