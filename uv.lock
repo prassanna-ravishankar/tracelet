@@ -4499,7 +4499,7 @@ wheels = [
 
 [[package]]
 name = "tracelet"
-version = "0.0.1"
+version = "0.0.8"
 source = { editable = "." }
 dependencies = [
     { name = "gitpython" },
