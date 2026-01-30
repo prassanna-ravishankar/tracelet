@@ -148,9 +148,9 @@ python 01_manual_tracking/01_basic_manual.py
 
 ## Documentation
 
-- [Documentation](https://prassanna-ravishankar.github.io/tracelet/)
-- [API Reference](https://prassanna-ravishankar.github.io/tracelet/api/)
-- [Configuration Guide](https://prassanna-ravishankar.github.io/tracelet/settings/)
+- [Documentation](https://prassanna.io/tracelet/)
+- [API Reference](https://prassanna.io/tracelet/api/)
+- [Configuration Guide](https://prassanna.io/tracelet/settings/)
 
 ## Development
 
